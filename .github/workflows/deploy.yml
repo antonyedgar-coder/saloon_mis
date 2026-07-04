@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+﻿name: Deploy to DigitalOcean
 
 on:
   push:
@@ -18,5 +18,5 @@ jobs:
           script_stop: true
           script: |
             set -e
-            cd /var/www/salon-mis
+            cd /var/www/saloon-mis
             sudo bash deploy/deploy.sh

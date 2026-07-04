@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Salon MIS{% endblock %}</title>
+  <title>{% block title %}Saloon MIS{% endblock %}</title>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
         {% include "includes/icons.html" with name="dashboard" %}
       </div>
       <div>
-        <strong>Salon MIS</strong>
+        <strong>Saloon MIS</strong>
         <small>{{ user.get_full_name|default:user.username }}</small>
         <small class="muted">{{ user.get_role_display }}</small>
       </div>

@@ -1,15 +1,15 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # One-time setup on the DigitalOcean droplet.
 # Run as root: bash setup_droplet.sh
 set -euo pipefail
 
-APP_DIR=/var/www/salon-mis
+APP_DIR=/var/www/saloon-mis
 REPO_URL="${REPO_URL:-}"
 DOMAIN_OR_IP="${DOMAIN_OR_IP:-168.144.17.152}"
 
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL to your GitHub clone URL, e.g.:"
-  echo "  REPO_URL=https://github.com/YOU/salon-mis.git bash deploy/setup_droplet.sh"
+  echo "  REPO_URL=https://github.com/YOU/saloon-mis.git bash deploy/setup_droplet.sh"
   exit 1
 fi
 
@@ -17,7 +17,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y python3 python3-venv python3-pip nginx git curl
 
-mkdir -p /var/log/salon-mis
+mkdir -p /var/log/saloon-mis
 mkdir -p /var/www
 
 if [[ ! -d "$APP_DIR/.git" ]]; then
@@ -54,18 +54,18 @@ fi
 # Optional demo users (ignore if command missing)
 .venv/bin/python manage.py seed_demo 2>/dev/null || true
 
-chown -R www-data:www-data "$APP_DIR" /var/log/salon-mis
+chown -R www-data:www-data "$APP_DIR" /var/log/saloon-mis
 chmod 640 "$APP_DIR/.env"
 
-cp deploy/salon-mis.service /etc/systemd/system/salon-mis.service
-sed "s/168.144.17.152/${DOMAIN_OR_IP}/g; s/YOUR_DOMAIN_OR_IP/${DOMAIN_OR_IP}/g" deploy/nginx-salon-mis.conf \
-  > /etc/nginx/sites-available/salon-mis
-ln -sfn /etc/nginx/sites-available/salon-mis /etc/nginx/sites-enabled/salon-mis
+cp deploy/saloon-mis.service /etc/systemd/system/saloon-mis.service
+sed "s/168.144.17.152/${DOMAIN_OR_IP}/g; s/YOUR_DOMAIN_OR_IP/${DOMAIN_OR_IP}/g" deploy/nginx-saloon-mis.conf \
+  > /etc/nginx/sites-available/saloon-mis
+ln -sfn /etc/nginx/sites-available/saloon-mis /etc/nginx/sites-enabled/saloon-mis
 rm -f /etc/nginx/sites-enabled/default
 
 systemctl daemon-reload
-systemctl enable salon-mis
-systemctl restart salon-mis
+systemctl enable saloon-mis
+systemctl restart saloon-mis
 nginx -t
 systemctl restart nginx
 

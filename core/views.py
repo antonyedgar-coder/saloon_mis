@@ -1,4 +1,4 @@
-from django.contrib.auth.views import LoginView, LogoutView
+﻿from django.contrib.auth.views import LoginView, LogoutView
 from django.db.models import Sum
 from django.shortcuts import render
 from django.urls import reverse_lazy
@@ -9,12 +9,12 @@ from core.mixins import LoginRequiredMixin, ModulePermissionMixin
 from core.module_permissions import has_settings_access, user_can
 from inventory.models import BranchOutward, Grn, OutwardInvoice, StockLedger
 
-class SalonLoginView(LoginView):
+class SaloonLoginView(LoginView):
     template_name = "core/login.html"
     redirect_authenticated_user = True
 
 
-class SalonLogoutView(LogoutView):
+class SaloonLogoutView(LogoutView):
     next_page = reverse_lazy("login")
 
 

@@ -1,4 +1,4 @@
-# Salon MIS — Business Rules (defaults)
+﻿# Saloon MIS — Business Rules (defaults)
 
 These defaults apply until overridden by uploaded report templates or admin configuration.
 

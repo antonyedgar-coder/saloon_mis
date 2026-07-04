@@ -1,0 +1,22 @@
+﻿[Unit]
+Description=Saloon MIS Gunicorn
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/saloon-mis
+EnvironmentFile=/var/www/saloon-mis/.env
+RuntimeDirectory=saloon-mis
+RuntimeDirectoryMode=0755
+ExecStart=/var/www/saloon-mis/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/run/saloon-mis/saloon-mis.sock \
+    --access-logfile /var/log/saloon-mis/access.log \
+    --error-logfile /var/log/saloon-mis/error.log \
+    saloon_mis.wsgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

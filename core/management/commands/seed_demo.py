@@ -1,11 +1,11 @@
-from django.core.management.base import BaseCommand
+﻿from django.core.management.base import BaseCommand
 
 from core.models import Branch, Role, User
 from masters.models import ExpenseParticular, InventoryCategory, Product, ProductType, Supplier
 
 
 class Command(BaseCommand):
-    help = "Seed demo data for Salon MIS"
+    help = "Seed demo data for Saloon MIS"
 
     def handle(self, *args, **options):
         Branch.objects.all().delete()
@@ -69,20 +69,20 @@ class Command(BaseCommand):
 
         User.objects.create_user(
             username="admin",
-            email="admin@salonmis.local",
+            email="admin@saloonmis.local",
             password="admin123",
             role=Role.SUPER_ADMIN,
             is_staff=True,
         )
         User.objects.create_user(
             username="accounts",
-            email="accounts@salonmis.local",
+            email="accounts@saloonmis.local",
             password="accounts123",
             role=Role.ACCOUNTS,
         )
         manager = User.objects.create_user(
             username="manager",
-            email="manager@salonmis.local",
+            email="manager@saloonmis.local",
             password="manager123",
             role=Role.BRANCH_MANAGER,
         )

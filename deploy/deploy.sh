@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # Run on the droplet after each git push (also used by GitHub Actions).
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/var/www/salon-mis}"
+APP_DIR="${APP_DIR:-/var/www/saloon-mis}"
 cd "$APP_DIR"
 
 echo ">> Pulling latest code"
@@ -22,8 +22,8 @@ chown -R www-data:www-data "$APP_DIR"
 chmod 640 "$APP_DIR/.env" 2>/dev/null || true
 
 echo ">> Restarting app"
-systemctl restart salon-mis
+systemctl restart saloon-mis
 systemctl reload nginx
 
 echo ">> Deploy finished"
-systemctl --no-pager --full status salon-mis | head -n 15
+systemctl --no-pager --full status saloon-mis | head -n 15

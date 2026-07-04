@@ -1,4 +1,4 @@
-# Salon MIS
+﻿# Saloon MIS
 
 Management Information System for salon operations — built with **Django**.
 
@@ -19,7 +19,7 @@ Management Information System for salon operations — built with **Django**.
 ## Getting started
 
 ```bash
-cd salon-mis
+cd saloon-mis
 python -m venv .venv
 .venv\Scripts\activate          # Windows
 pip install -r requirements.txt
@@ -47,7 +47,7 @@ docker compose up -d
 Set in `.env`:
 
 ```
-DATABASE_URL=postgresql://salon:salon@localhost:5432/salon_mis
+DATABASE_URL=postgresql://saloon:saloon@localhost:5432/saloon_mis
 SECRET_KEY=your-long-random-secret
 DEBUG=False
 ```
