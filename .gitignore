@@ -48,3 +48,5 @@ staticfiles/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+saloon_mis/
