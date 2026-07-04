@@ -7,19 +7,11 @@
     <form method="post">
       {% csrf_token %}
       <label>Username</label>
-      <input type="text" name="username" value="admin" required autofocus>
+      <input type="text" name="username" required autofocus autocomplete="username">
       <label>Password</label>
-      <input type="password" name="password" required placeholder="admin123">
+      <input type="password" name="password" required autocomplete="current-password">
       <button class="btn" type="submit">Sign in</button>
     </form>
-    <div style="margin-top:1rem;font-size:0.85rem;color:#64748b">
-      <p><strong>Demo accounts</strong> (use <em>Username</em>, not email):</p>
-      <ul style="padding-left:1.2rem;margin:0.5rem 0">
-        <li>Super Admin — <code>admin</code> / <code>admin123</code></li>
-        <li>Accounts — <code>accounts</code> / <code>accounts123</code></li>
-        <li>Branch Manager — <code>manager</code> / <code>manager123</code></li>
-      </ul>
-    </div>
   </div>
 </div>
 {% endblock %}
