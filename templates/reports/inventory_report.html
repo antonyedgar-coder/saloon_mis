@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inventory Reports{% endblock %}
+{% block content %}
+<h1>Inventory Reports</h1>
+<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a></p>
+
+<div class="card">
+  <form method="get" id="inventory-report-filters" class="inventory-report-filters">
+    <div class="grid">
+      <div>
+        <label>Report</label>
+        <select name="report_type" id="inventory-report-type">
+          {% for val, label in report_types %}
+          <option value="{{ val }}" {% if val == report_type %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-branch"{% if report_type == 'grn' or report_type == 'outward' %} hidden{% endif %}>
+        <label>Branch</label>
+        <select name="branch" id="inventory-branch">
+          {% for opt in branch_options %}
+          <option value="{{ opt.value }}" {% if selected_branch == opt.value %}selected{% endif %}>{{ opt.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-product">
+        <label>Inventory name</label>
+        <select name="product" id="inventory-product">
+          <option value="">{% if not selected_product %} selected{% endif %}>{% if report_type == 'stock-balance' %}All stock{% else %}— Select —{% endif %}</option>
+          {% for p in products %}
+          <option value="{{ p.id }}" {% if selected_product == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-range"{% if report_type == 'stock-balance' %} hidden{% endif %}>
+        <label>From date</label>
+        <input type="date" name="from_date" value="{{ from_date }}">
+      </div>
+      <div class="filter-range"{% if report_type == 'stock-balance' %} hidden{% endif %}>
+        <label>To date</label>
+        <input type="date" name="to_date" value="{{ to_date }}">
+      </div>
+      <div class="filter-asof"{% if report_type != 'stock-balance' %} hidden{% endif %}>
+        <label>As at date</label>
+        <input type="date" name="as_of_date" value="{{ as_of_date }}">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit" name="run" value="1">View report</button>
+      {% if ran_report and rows %}
+      <a class="btn btn-secondary" id="inventory-export-xlsx" href="#">Download Excel</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if error_message %}
+<div class="alert alert-error">{{ error_message }}</div>
+{% endif %}
+
+{% if ran_report %}
+<div class="card">
+  {% if report_type == 'statement' %}
+  <p class="muted">Stock statement for the selected branch and inventory item. At Central (HO), GRN adds stock and outward dispatch reduces it. At branches, receive stock adds and branch outward reduces.</p>
+  {% endif %}
+  <table>
+    <thead>
+      <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+      {% empty %}
+      <tr><td colspan="{{ headers|length }}">No data for the selected filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script src="{% static 'js/inventory-report.js' %}?v=1"></script>
+{% endblock %}

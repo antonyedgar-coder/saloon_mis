@@ -1,0 +1,27 @@
+<div class="card">
+  <h2>Petty cash report</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Particulars</th>
+        <th>Payments</th>
+        <th>Receipts</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in report_rows %}
+      <tr>
+        <td>{{ row.date }}</td>
+        <td>{{ row.particulars }}</td>
+        <td>{% if row.payments %}{{ row.payments }}{% else %}—{% endif %}</td>
+        <td>{% if row.receipts %}{{ row.receipts }}{% else %}—{% endif %}</td>
+        <td>{{ row.balance }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No petty cash entries yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

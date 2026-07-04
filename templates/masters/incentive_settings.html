@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Incentive Master{% endblock %}
+{% block content %}
+<h1>Incentive Master</h1>
+<p class="muted"><a href="{% url 'settings' %}">← Settings</a> · Rules apply from the effective date. Earlier periods keep the previous incentive % and salary-times target.</p>
+
+<div class="card">
+  <form method="post">{% csrf_token %}
+    <div class="grid">
+      <div>
+        <label>Incentive %</label>
+        <input name="incentive_percent" type="number" step="0.01" min="0" value="{{ form.incentive_percent.value|default:'0' }}" required>
+        <p class="muted">Paid only when target achieved is equal to or more than target. Incentive = Incentive % × Target achieved.</p>
+      </div>
+      <div>
+        <label>No. of times of salary as target</label>
+        <input name="salary_times" type="number" step="0.01" min="0" value="{{ form.salary_times.value|default:'5' }}" required>
+        <p class="muted">Monthly target = Salary × this value. Daily = that ÷ 30. Weekly = that ÷ 4.</p>
+      </div>
+      <div>
+        <label>Effective from</label>
+        <input name="effective_from" type="date" value="{% if form.effective_from.value %}{{ form.effective_from.value|date:'Y-m-d' }}{% endif %}" required>
+        <p class="muted">New rules apply from this date onward only.</p>
+      </div>
+    </div>
+    {% if form.errors %}
+    <div class="alert alert-error">{{ form.errors }}</div>
+    {% endif %}
+    <div class="form-actions">
+      <button class="btn" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+{% if versions %}
+<div class="card">
+  <h2>History</h2>
+  <table>
+    <thead>
+      <tr><th>Effective from</th><th>Incentive %</th><th>Salary times</th></tr>
+    </thead>
+    <tbody>
+      {% for v in versions %}
+      <tr>
+        <td>{{ v.effective_from }}</td>
+        <td>{{ v.incentive_percent }}</td>
+        <td>{{ v.salary_times }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

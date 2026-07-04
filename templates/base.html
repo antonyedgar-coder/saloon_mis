@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Salon MIS{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        {% include "includes/icons.html" with name="dashboard" %}
+      </div>
+      <div>
+        <strong>Salon MIS</strong>
+        <small>{{ user.get_full_name|default:user.username }}</small>
+        <small class="muted">{{ user.get_role_display }}</small>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+      <div class="nav-box">
+        <div class="nav-box-title">Menu</div>
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+          <span class="nav-icon nav-icon-dashboard">{% include "includes/icons.html" with name="dashboard" %}</span>
+          Dashboard
+        </a>
+        {% if user.nav_access.dsr %}
+        <a href="{% url 'reports:dsr' %}" class="nav-link {% if '/reports/dsr' in request.path %}active{% endif %}">
+          <span class="nav-icon nav-icon-dsr">{% include "includes/icons.html" with name="dsr" %}</span>
+          Daily Sales Report
+        </a>
+        {% endif %}
+        {% if user.nav_access.inventory %}
+        <a href="{% url 'inventory:hub' %}" class="nav-link {% if '/inventory/' in request.path %}active{% endif %}">
+          <span class="nav-icon nav-icon-inventory">{% include "includes/icons.html" with name="inventory" %}</span>
+          Inventory
+        </a>
+        {% endif %}
+        {% if user.nav_access.petty_cash %}
+        <a href="{% url 'reports:petty_cash' %}" class="nav-link {% if '/petty-cash' in request.path %}active{% endif %}">
+          <span class="nav-icon nav-icon-petty">{% include "includes/icons.html" with name="petty" %}</span>
+          Petty Cash
+        </a>
+        {% endif %}
+        {% if user.nav_access.reports %}
+        <a href="{% url 'reports:index' %}" class="nav-link {% if '/reports/' in request.path and '/dsr' not in request.path and '/petty-cash' not in request.path %}active{% endif %}">
+          <span class="nav-icon nav-icon-report">{% include "includes/icons.html" with name="report" %}</span>
+          Report
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if user.nav_access.settings %}
+    <div class="sidebar-settings">
+      <a href="{% url 'settings' %}" class="nav-link nav-settings {% if '/settings' in request.path or '/masters/' in request.path %}active{% endif %}">
+        <span class="nav-icon nav-icon-settings">{% include "includes/icons.html" with name="settings" %}</span>
+        Settings
+      </a>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'logout' %}" class="logout">
+      {% csrf_token %}
+      <button type="submit">Sign out</button>
+    </form>
+  </aside>
+  <main class="content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+</body>
+</html>

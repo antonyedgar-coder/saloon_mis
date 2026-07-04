@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Branch Outward{% endblock %}
+{% block content %}
+<h1>Branch Outward</h1>
+<p class="muted"><a href="{% url 'inventory:hub' %}">← Inventory</a></p>
+
+<div class="card">
+  <h2>Retail sale or consumption</h2>
+  <form method="post" id="branch-outward-form">{% csrf_token %}
+    <div class="grid">
+      <div>
+        <label>Branch</label>
+        <select name="branch_id" required>
+          {% for b in branches %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Type</label>
+        <select name="type" id="outward-type">
+          <option value="RETAIL_SALE">Retail sale</option>
+          <option value="CONSUMPTION">Consumption</option>
+        </select>
+      </div>
+    </div>
+
+    <h3>Products</h3>
+    <div class="line-row-header line-row-header-outward" id="outward-line-header">
+      <span>Product</span><span>Quantity</span><span class="retail-only">Amount (₹)</span><span class="retail-only">Staff</span><span></span>
+    </div>
+    <div id="branch-outward-lines" class="line-rows"></div>
+    <button type="button" class="btn btn-secondary" id="branch-outward-add-line">+ Add product</button>
+    <div class="form-actions">
+      <button class="btn" type="submit">Save outward</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Recent branch outwards</h2>
+  {% include "inventory/includes/list_filters.html" %}
+  <table>
+    <thead><tr><th>Document</th><th>Date</th><th>Branch</th><th>Type</th><th>Details</th></tr></thead>
+    <tbody>
+      {% for o in outwards %}
+      <tr>
+        <td>{{ o.doc_number }}</td>
+        <td>{{ o.date|date:"Y-m-d" }}</td>
+        <td>{{ o.branch.name }}</td>
+        <td>{{ o.get_type_display }}</td>
+        <td>
+          {% for l in o.lines.all %}
+            {{ l.product.name }} ({{ l.quantity }}{% if o.type == 'RETAIL_SALE' %}, ₹{{ l.amount }}{% if l.staff %}, {{ l.staff.name }}{% endif %}{% endif %}){% if not forloop.last %}; {% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="5">No records yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{{ products_list|json_script:"products-data" }}
+{{ staff_list|json_script:"staff-data" }}
+<script src="{% static 'js/inventory-forms.js' %}?v=6"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  initBranchOutwardForm({
+    containerId: "branch-outward-lines",
+    addButtonId: "branch-outward-add-line",
+    productsDataId: "products-data",
+    staffDataId: "staff-data",
+    typeSelectId: "outward-type",
+    headerId: "outward-line-header",
+  });
+});
+</script>
+{% endblock %}

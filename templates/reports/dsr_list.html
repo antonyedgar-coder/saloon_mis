@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Daily Sales Report{% endblock %}
+{% block content %}
+<h1>Daily Sales Report</h1>
+<p class="muted">Enter a new report, or choose a branch and date and click <strong>Load report</strong> to edit a saved one.</p>
+
+{% if validation_errors %}
+<div class="alert alert-error">
+  <strong>Please correct totals before saving:</strong>
+  <ul class="dsr-error-list">
+    {% for err in validation_errors %}<li>{{ err }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div id="dsr-load-status" class="dsr-load-status" hidden></div>
+
+<form method="post" id="dsr-form" class="master-form"{% if validation_errors or edit_report %} data-preserve-values="1"{% endif %}{% if is_editing %} data-editing="1"{% endif %}>{% csrf_token %}
+  <div class="master-form-top">
+    <div class="grid master-form-meta">
+      <div>
+        <label for="dsr-branch">Branch</label>
+        <select name="branch_id" id="dsr-branch" required>
+          {% for b in branches %}
+          <option value="{{ b.id }}" {% if form_values.branch_id == b.id|stringformat:"s" or not form_values.branch_id and forloop.first %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="dsr-date">Date</label>
+        <input type="date" name="report_date" id="dsr-date" required value="{{ form_values.report_date }}">
+      </div>
+    </div>
+    <div class="master-form-top-actions">
+      <button type="button" class="btn btn-secondary" id="dsr-load-btn">Load report</button>
+      <span id="summary-status" class="dsr-summary-status dsr-summary-ok">Ready to save</span>
+      <button class="btn" type="submit" id="dsr-save-btn">{% if is_editing %}Update DSR{% else %}Save DSR{% endif %}</button>
+      <a class="btn btn-secondary" href="{% url 'reports:dsr' %}" id="dsr-new-btn">New report</a>
+    </div>
+  </div>
+
+  <div class="master-form-body">
+    <section id="sec-income" class="master-section">
+      <button type="button" class="master-section-head" aria-expanded="true">
+        <span class="master-section-title-wrap">
+          <span class="master-section-chevron" aria-hidden="true"></span>
+          <span class="master-section-title">Income</span>
+        </span>
+        <span class="master-section-total">Total <output id="income-total">0.00</output></span>
+      </button>
+      <div class="master-section-body">
+        <div class="master-fields master-fields-2">
+          <label class="master-field"><span>Net Service income</span><input name="net_service_income" type="number" step="0.01" min="0" class="dsr-income-field dsr-net-service" value="{{ form_values.net_service_income }}"></label>
+          <label class="master-field"><span>Membership Card</span><input name="membership_card" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.membership_card }}"></label>
+          <label class="master-field"><span>Ear Piercing</span><input name="ear_piercing" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.ear_piercing }}"></label>
+          <label class="master-field"><span>Other Income</span><input name="other_income" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.other_income }}"></label>
+          <label class="master-field"><span>Product Sale 18%</span><input name="product_sale_18" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.product_sale_18 }}"></label>
+          <label class="master-field"><span>Product Sale 5%</span><input name="product_sale_5" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.product_sale_5 }}"></label>
+          <label class="master-field"><span>GST</span><input name="gst" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.gst }}"></label>
+          <label class="master-field"><span>Bridal Advance</span><input name="bridal_advance" type="number" step="0.01" min="0" class="dsr-income-field" value="{{ form_values.bridal_advance }}"></label>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-walkins" class="master-section is-collapsed">
+      <button type="button" class="master-section-head" aria-expanded="false">
+        <span class="master-section-title-wrap">
+          <span class="master-section-chevron" aria-hidden="true"></span>
+          <span class="master-section-title">Walk Ins</span>
+        </span>
+        <span class="master-section-total">Income <output id="walkin-total-income" class="walkin-total-income-sync">0.00</output></span>
+      </button>
+      <div class="master-section-body">
+        <div class="dsr-walkins-table">
+          <table class="master-table">
+            <thead>
+              <tr><th>Category</th><th>Walkins</th><th>Income (₹)</th><th>AVB</th></tr>
+            </thead>
+            <tbody>
+              <tr class="dsr-walkin-row">
+                <td>Male</td>
+                <td><input name="male_walkins" type="number" min="0" step="1" class="walkin-count" value="{{ form_values.male_walkins }}"></td>
+                <td><input name="male_income" type="number" step="0.01" min="0" class="walkin-income" value="{{ form_values.male_income }}"></td>
+                <td class="master-table-calc"><output class="walkin-avb">—</output></td>
+              </tr>
+              <tr class="dsr-walkin-row">
+                <td>Female</td>
+                <td><input name="female_walkins" type="number" min="0" step="1" class="walkin-count" value="{{ form_values.female_walkins }}"></td>
+                <td><input name="female_income" type="number" step="0.01" min="0" class="walkin-income" value="{{ form_values.female_income }}"></td>
+                <td class="master-table-calc"><output class="walkin-avb">—</output></td>
+              </tr>
+              <tr class="dsr-walkin-row">
+                <td>Kids</td>
+                <td><input name="kids_walkins" type="number" min="0" step="1" class="walkin-count" value="{{ form_values.kids_walkins }}"></td>
+                <td><input name="kids_income" type="number" step="0.01" min="0" class="walkin-income" value="{{ form_values.kids_income }}"></td>
+                <td class="master-table-calc"><output class="walkin-avb">—</output></td>
+              </tr>
+              <tr class="master-table-total dsr-total-row">
+                <td>Total</td>
+                <td><output id="walkin-total-count">0</output></td>
+                <td><output class="walkin-total-income-sync">0.00</output></td>
+                <td class="master-table-calc"><output id="walkin-total-avb">—</output></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-payment" class="master-section is-collapsed">
+      <button type="button" class="master-section-head" aria-expanded="false">
+        <span class="master-section-title-wrap">
+          <span class="master-section-chevron" aria-hidden="true"></span>
+          <span class="master-section-title">Mode of Payment</span>
+        </span>
+        <span class="master-section-total">Total <output id="payment-total">0.00</output></span>
+      </button>
+      <div class="master-section-body">
+        <div class="master-fields master-fields-3">
+          <label class="master-field"><span>Card Payment</span><input name="card_payment" type="number" step="0.01" min="0" class="dsr-payment-field" value="{{ form_values.card_payment }}"></label>
+          <label class="master-field"><span>UPI</span><input name="upi_payment" type="number" step="0.01" min="0" class="dsr-payment-field" value="{{ form_values.upi_payment }}"></label>
+          <label class="master-field"><span>Cash Payment</span><input name="cash_payment" type="number" step="0.01" min="0" class="dsr-payment-field" value="{{ form_values.cash_payment }}"></label>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-marketing" class="master-section is-collapsed">
+      <button type="button" class="master-section-head" aria-expanded="false">
+        <span class="master-section-title-wrap">
+          <span class="master-section-chevron" aria-hidden="true"></span>
+          <span class="master-section-title">Marketing Updates</span>
+        </span>
+      </button>
+      <div class="master-section-body">
+        <div class="master-fields master-fields-2">
+          <label class="master-field"><span>No. of calls done</span><input name="calls_done" type="number" min="0" step="1" value="{{ form_values.calls_done }}"></label>
+          <label class="master-field"><span>Zooty Appointment</span><input name="zooty_appointment" type="number" min="0" step="1" value="{{ form_values.zooty_appointment }}"></label>
+          <label class="master-field"><span>By Google appointment</span><input name="google_appointment" type="number" min="0" step="1" value="{{ form_values.google_appointment }}"></label>
+          <label class="master-field"><span>Just dial</span><input name="just_dial" type="number" min="0" step="1" value="{{ form_values.just_dial }}"></label>
+          <label class="master-field"><span>Status \ Story</span><input name="status_story" type="text" value="{{ form_values.status_story }}"></label>
+          <label class="master-field"><span>Broadcast</span><input name="broadcast" type="number" min="0" step="1" value="{{ form_values.broadcast }}"></label>
+          <label class="master-field"><span>Google reviews</span><input name="google_reviews_request" type="text" value="{{ form_values.google_reviews_request }}"></label>
+          <label class="master-field"><span>No of New Clients</span><input name="new_clients" type="number" min="0" step="1" value="{{ form_values.new_clients }}"></label>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-staff" class="master-section is-collapsed">
+      <button type="button" class="master-section-head" aria-expanded="false">
+        <span class="master-section-title-wrap">
+          <span class="master-section-chevron" aria-hidden="true"></span>
+          <span class="master-section-title">Staff Performance</span>
+        </span>
+        <span class="master-section-total">Total <output id="staff-total">0.00</output></span>
+      </button>
+      <div class="master-section-body">
+        <div class="line-row-header line-row-header-staff">
+          <span>Staff</span><span>Amount (₹)</span><span></span>
+        </div>
+        <div id="dsr-staff-tbody" class="line-rows dsr-staff-lines"></div>
+        <button type="button" class="btn btn-secondary" id="dsr-add-staff">+ Add staff</button>
+      </div>
+    </section>
+
+    <div id="dsr-live-errors" class="dsr-live-errors" hidden></div>
+  </div>
+
+  <footer class="master-form-footer" id="dsr-summary-bar">
+    <div class="master-footer-stat"><span>Net service</span><strong id="summary-net-service">₹0.00</strong></div>
+    <div class="master-footer-stat"><span>Walk-ins</span><strong id="summary-walkins">₹0.00</strong></div>
+    <div class="master-footer-stat"><span>Staff</span><strong id="summary-staff">₹0.00</strong></div>
+    <div class="master-footer-stat"><span>Total income</span><strong id="summary-income">₹0.00</strong></div>
+    <div class="master-footer-stat"><span>Payment</span><strong id="summary-payment">₹0.00</strong></div>
+  </footer>
+</form>
+
+{% if recent_reports %}
+<div class="card dsr-recent-card">
+  <h2>Recent reports</h2>
+  <p class="muted">Click Edit to open a saved report by date and update it.</p>
+  <table>
+    <thead>
+      <tr><th>Date</th><th>Branch</th><th>Total income</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in recent_reports %}
+      <tr>
+        <td>{{ r.report_date }}</td>
+        <td>{{ r.branch.name }}</td>
+        <td>₹{{ r.total_income|floatformat:2 }}</td>
+        <td class="actions">
+          <a class="btn btn-sm btn-secondary" href="{% url 'reports:dsr' %}?branch={{ r.branch_id }}&date={{ r.report_date|date:'Y-m-d' }}">Edit</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{{ staff_list|json_script:"staff-data" }}
+{{ staff_lines_json|json_script:"dsr-staff-lines-data" }}
+<script src="{% static 'js/inventory-forms.js' %}?v=7"></script>
+<script src="{% static 'js/dsr-form.js' %}?v=12"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  initDsrForm({
+    staffDataId: "staff-data",
+    editLinesId: "dsr-staff-lines-data",
+    linesContainerId: "dsr-staff-tbody",
+    addButtonId: "dsr-add-staff",
+    loadUrl: "{% url 'reports:dsr_load' %}",
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sales Report{% endblock %}
+{% block content %}
+<h1>Sales Report</h1>
+<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a></p>
+
+<div class="card">
+  <form method="get" id="sales-report-filters" class="sales-report-filters">
+    <div class="grid">
+      <div>
+        <label>Type of report</label>
+        <select name="period_type" id="period-type">
+          {% for val, label in period_types %}
+          <option value="{{ val }}" {% if val == period_type %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Branch</label>
+        <select name="branch" required>
+          {% for b in branches %}
+          <option value="{{ b.id }}" {% if selected_branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-daily"{% if period_type != 'daily' %} hidden{% endif %}>
+        <label>Date</label>
+        <input type="date" name="report_date" value="{{ report_date }}">
+      </div>
+      <div class="filter-monthly monthly-picker"{% if period_type != 'monthly' %} hidden{% endif %}>
+        <div>
+          <label>Year</label>
+          <select name="report_year" id="report-year">
+            {% for y in year_choices %}
+            <option value="{{ y }}" {% if y == report_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label>Month</label>
+          <select name="report_month_num" id="report-month-num">
+            {% for num, name in month_choices %}
+            <option value="{{ num }}" {% if num|stringformat:"s" == report_month_num %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="filter-yearly"{% if period_type != 'yearly' %} hidden{% endif %}>
+        <label>Financial year (Apr – Mar)</label>
+        <select name="financial_year">
+          {% for val, label in fy_choices %}
+          <option value="{{ val }}" {% if val == financial_year %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">View report</button>
+      {% if display or period_type == 'yearly' %}
+      <a class="btn btn-secondary" id="export-xlsx" href="#">Download Excel</a>
+      <a class="btn btn-secondary" id="export-pdf" href="#">Download PDF</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if not_found %}
+<div class="alert alert-error">
+  No daily sales data found for <strong>{{ period_label }}</strong> at the selected branch.
+</div>
+{% endif %}
+
+{% if display %}
+<div class="card dsr-card">
+  {% if period_type == 'monthly' %}
+  <p class="muted">Consolidated report for {{ period_label }} (all days summed).</p>
+  {% endif %}
+  {% include "reports/includes/dsr_readonly.html" %}
+</div>
+{% endif %}
+
+{% if period_type == 'yearly' %}
+<div class="card">
+  <h2>{{ period_label }}</h2>
+  {% if yearly_note %}<p class="muted">{{ yearly_note }}</p>{% endif %}
+  <table>
+    <thead>
+      <tr>{% for h in yearly_headers %}<th>{{ h }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for row in yearly_rows %}
+      <tr>{% for cell in row %}<td>{% if forloop.first %}{{ cell }}{% elif cell == '' %}—{% else %}{{ cell|floatformat:2 }}{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script src="{% static 'js/sales-report.js' %}?v=4"></script>
+{% endblock %}

@@ -1,0 +1,19 @@
+<form method="get" class="list-filters">
+  {% if preserve_invoice %}<input type="hidden" name="invoice" value="{{ preserve_invoice }}">{% endif %}
+  {% if preserve_edit %}<input type="hidden" name="edit" value="{{ preserve_edit }}">{% endif %}
+  <div class="filter-row">
+    <div>
+      <label>From date</label>
+      <input type="date" name="from_date" value="{{ from_date }}">
+    </div>
+    <div>
+      <label>To date</label>
+      <input type="date" name="to_date" value="{{ to_date }}">
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a class="btn btn-secondary" href="{{ clear_url }}">Clear</a>
+      <a class="btn" href="{{ csv_url }}">Download CSV</a>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Petty Cash — Salon MIS{% endblock %}
+{% block content %}
+<h1>Petty Cash</h1>
+
+<div class="tabs">
+  <a href="?branch={{ selected_branch }}&type=opening" class="tab {% if voucher_type == 'opening' %}active{% endif %}">Opening balance</a>
+  <a href="?branch={{ selected_branch }}&type=receipt" class="tab {% if voucher_type == 'receipt' %}active{% endif %}">Receipt</a>
+  <a href="?branch={{ selected_branch }}&type=payment" class="tab {% if voucher_type == 'payment' %}active{% endif %}">Payment</a>
+</div>
+
+<div class="card">
+  <h2>
+    {% if voucher_type == 'payment' %}Record payment
+    {% elif voucher_type == 'opening' %}Record opening balance
+    {% else %}Record receipt{% endif %}
+  </h2>
+  <form method="post" id="petty-cash-form">{% csrf_token %}
+    <input type="hidden" name="branch_id" id="branch-id" value="{{ selected_branch }}">
+    <input type="hidden" name="transaction_type" id="transaction-type" value="{% if voucher_type == 'payment' %}PAYMENT{% elif voucher_type == 'opening' %}OPENING{% else %}RECEIPT{% endif %}">
+    <input type="hidden" name="voucher_type" id="voucher-type" value="{{ voucher_type }}">
+
+    <div class="grid">
+      <div>
+        <label>Branch</label>
+        <select name="branch_select" id="branch-select" required>
+          {% for b in branches %}
+          <option value="{{ b.id }}" {% if selected_branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Voucher type</label>
+        <select id="voucher-select" required>
+          <option value="opening" {% if voucher_type == 'opening' %}selected{% endif %}>Opening balance</option>
+          <option value="receipt" {% if voucher_type == 'receipt' %}selected{% endif %}>Receipt</option>
+          <option value="payment" {% if voucher_type == 'payment' %}selected{% endif %}>Payment</option>
+        </select>
+      </div>
+      <div>
+        <label>Date</label>
+        <input type="date" name="entry_date" value="{{ today }}" required>
+      </div>
+      <div id="receipt-particulars" {% if voucher_type == 'payment' %}hidden{% endif %}>
+        <label>Particulars</label>
+        <input type="text" name="particulars" id="particulars-text"
+          value="{% if voucher_type == 'opening' %}Opening balance{% endif %}"
+          placeholder="{% if voucher_type == 'opening' %}Opening balance{% else %}e.g. Counter cash, Owner contribution{% endif %}"
+          {% if voucher_type == 'receipt' %}required{% endif %}>
+        {% if voucher_type == 'opening' %}
+        <p class="muted">Recorded as a special receipt that starts the cash balance for this branch.</p>
+        {% endif %}
+      </div>
+      <div id="payment-particulars" {% if voucher_type != 'payment' %}hidden{% endif %}>
+        <label>Particulars (expense head)</label>
+        <div class="combobox" id="expense-combobox">
+          <input type="text" name="expense_search" id="expense-search" placeholder="Search expense head..." autocomplete="off" {% if voucher_type == 'payment' %}required{% endif %}>
+          <input type="hidden" name="expense_particular_id" id="expense-particular-id">
+          <ul class="combobox-list" id="expense-list" hidden>
+            {% for e in expense_particulars %}
+            <li data-id="{{ e.id }}" data-name="{{ e.name }}">{{ e.name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <p class="muted">From Settings → Expenses Head</p>
+      </div>
+      <div>
+        <label>Amount (₹)</label>
+        <input type="number" name="amount" step="0.01" min="0.01" required>
+      </div>
+    </div>
+    <button class="btn" type="submit">
+      Save {% if voucher_type == 'payment' %}payment{% elif voucher_type == 'opening' %}opening balance{% else %}receipt{% endif %}
+    </button>
+  </form>
+</div>
+
+{% include "reports/petty_cash_report_table.html" %}
+
+<script>
+(function () {
+  const branchSelect = document.getElementById('branch-select');
+  const branchId = document.getElementById('branch-id');
+  const voucherSelect = document.getElementById('voucher-select');
+  const transactionType = document.getElementById('transaction-type');
+  const receiptBlock = document.getElementById('receipt-particulars');
+  const paymentBlock = document.getElementById('payment-particulars');
+  const particularsText = document.getElementById('particulars-text');
+  const expenseSearch = document.getElementById('expense-search');
+  const expenseId = document.getElementById('expense-particular-id');
+  const expenseList = document.getElementById('expense-list');
+  const form = document.getElementById('petty-cash-form');
+
+  function currentBranch() {
+    return branchSelect ? branchSelect.value : '';
+  }
+
+  function goToType(type) {
+    window.location.href = '?branch=' + encodeURIComponent(currentBranch()) + '&type=' + type;
+  }
+
+  if (branchSelect) {
+    branchSelect.addEventListener('change', function () {
+      if (branchId) branchId.value = branchSelect.value;
+      goToType(voucherSelect.value);
+    });
+  }
+
+  if (voucherSelect) {
+    voucherSelect.addEventListener('change', function () {
+      goToType(voucherSelect.value);
+    });
+  }
+
+  function setVoucherMode(type) {
+    const isPayment = type === 'payment';
+    const isOpening = type === 'opening';
+    if (transactionType) {
+      transactionType.value = isPayment ? 'PAYMENT' : (isOpening ? 'OPENING' : 'RECEIPT');
+    }
+    if (receiptBlock) receiptBlock.hidden = isPayment;
+    if (paymentBlock) paymentBlock.hidden = !isPayment;
+    if (particularsText) {
+      particularsText.required = type === 'receipt';
+      if (isOpening && !particularsText.value) particularsText.value = 'Opening balance';
+    }
+    if (expenseSearch) expenseSearch.required = isPayment;
+  }
+
+  setVoucherMode(voucherSelect ? voucherSelect.value : 'receipt');
+
+  const expenses = expenseList
+    ? Array.from(expenseList.querySelectorAll('li')).map(function (li) {
+        return { id: li.dataset.id, name: li.dataset.name };
+      })
+    : [];
+
+  function renderExpenseOptions(filter) {
+    if (!expenseList) return;
+    const q = (filter || '').toLowerCase();
+    expenseList.innerHTML = '';
+    expenses
+      .filter(function (e) { return !q || e.name.toLowerCase().includes(q); })
+      .forEach(function (e) {
+        const li = document.createElement('li');
+        li.dataset.id = e.id;
+        li.dataset.name = e.name;
+        li.textContent = e.name;
+        expenseList.appendChild(li);
+      });
+    expenseList.hidden = expenseList.children.length === 0;
+  }
+
+  function pickExpense(item) {
+    if (!item || !expenseSearch || !expenseId) return;
+    expenseSearch.value = item.dataset.name;
+    expenseId.value = item.dataset.id;
+    if (expenseList) expenseList.hidden = true;
+  }
+
+  if (expenseSearch) {
+    expenseSearch.addEventListener('focus', function () {
+      renderExpenseOptions(expenseSearch.value);
+    });
+    expenseSearch.addEventListener('input', function () {
+      if (expenseId) expenseId.value = '';
+      renderExpenseOptions(expenseSearch.value);
+    });
+    expenseSearch.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && expenseList) expenseList.hidden = true;
+    });
+  }
+
+  if (expenseList) {
+    expenseList.addEventListener('mousedown', function (e) {
+      const item = e.target.closest('li');
+      if (item) {
+        e.preventDefault();
+        pickExpense(item);
+      }
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!expenseList || !expenseSearch) return;
+    if (!e.target.closest('#expense-combobox')) expenseList.hidden = true;
+  });
+
+  if (form) {
+    form.addEventListener('submit', function () {
+      if (branchSelect && branchId) branchId.value = branchSelect.value;
+    });
+  }
+})();
+</script>
+{% endblock %}

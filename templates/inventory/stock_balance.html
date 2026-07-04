@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Stock Balance</h1>
+<p class="muted"><a href="{% url 'inventory:hub' %}">← Inventory</a> · Central stock (accounts) and branch stock levels</p>
+<div class="card">
+  <form method="get" class="branch-picker">
+    <label>Location</label>
+    <select name="branch" onchange="this.form.submit()">
+      {% if user.is_central_user %}<option value="central" {% if selected_branch == None %}selected{% endif %}>Central</option>{% endif %}
+      {% for b in branches %}
+      <option value="{{ b.id }}" {% if selected_branch == b.id %}selected{% endif %}>{{ b.name }}</option>
+      {% endfor %}
+    </select>
+    {% if from_date %}<input type="hidden" name="from_date" value="{{ from_date }}">{% endif %}
+    {% if to_date %}<input type="hidden" name="to_date" value="{{ to_date }}">{% endif %}
+  </form>
+  <div class="filter-actions" style="margin-top:0.75rem">
+    <a class="btn" href="{{ csv_url }}">Download CSV</a>
+  </div>
+</div>
+<div class="card">
+  <table>
+    <thead><tr><th>Product</th><th>Category</th><th>Quantity</th><th>Unit</th></tr></thead>
+    <tbody>{% for s in stock %}<tr><td>{{ s.product.name }}</td><td>{{ s.product.inventory_category.name }}</td><td>{{ s.quantity }}</td><td>{{ s.product.unit }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

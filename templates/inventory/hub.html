@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Inventory — Salon MIS{% endblock %}
+{% block content %}
+<h1>Inventory</h1>
+<p class="muted">Stock inward, outward, transfers, and master data.</p>
+<div class="hub-grid">
+  {% for link in links %}
+  <a href="{% url link.url %}" class="hub-card">
+    <strong>{{ link.title }}</strong>
+    <span>{{ link.desc }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

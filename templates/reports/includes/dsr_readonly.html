@@ -1,0 +1,121 @@
+<div class="dsr-sheet dsr-readonly">
+  <div class="dsr-row dsr-row-header">
+    <div class="dsr-cell dsr-label">Branch</div>
+    <div class="dsr-cell dsr-value">{{ display.branch_name }}</div>
+    <div class="dsr-cell dsr-label">Period</div>
+    <div class="dsr-cell dsr-value">{{ display.period_label }}</div>
+  </div>
+
+  <div class="dsr-section-title">Income</div>
+  <div class="dsr-income-grid">
+    <table class="dsr-table">
+      <tbody>
+        <tr><td>Net Service income</td><td class="dsr-value">₹{{ display.net_service_income|floatformat:2 }}</td></tr>
+        <tr><td>Membership Card</td><td class="dsr-value">₹{{ display.membership_card|floatformat:2 }}</td></tr>
+        <tr><td>Ear Piercing</td><td class="dsr-value">₹{{ display.ear_piercing|floatformat:2 }}</td></tr>
+        <tr><td>Other Income</td><td class="dsr-value">₹{{ display.other_income|floatformat:2 }}</td></tr>
+      </tbody>
+    </table>
+    <table class="dsr-table">
+      <tbody>
+        <tr><td>Product Sale 18%</td><td class="dsr-value">₹{{ display.product_sale_18|floatformat:2 }}</td></tr>
+        <tr><td>Product Sale 5%</td><td class="dsr-value">₹{{ display.product_sale_5|floatformat:2 }}</td></tr>
+        <tr><td>GST</td><td class="dsr-value">₹{{ display.gst|floatformat:2 }}</td></tr>
+        <tr><td>Bridal Advance</td><td class="dsr-value">₹{{ display.bridal_advance|floatformat:2 }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="dsr-section-total">
+    <span>Total Income</span>
+    <span class="dsr-value">₹{{ display.total_income|floatformat:2 }}</span>
+  </div>
+
+  <div class="dsr-section-title">Walk Ins</div>
+  <table class="dsr-table dsr-walkins-table">
+    <thead>
+      <tr><th></th><th>Walkins</th><th>Income</th><th>AVB</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Male</td>
+        <td class="dsr-value">{{ display.male_walkins }}</td>
+        <td class="dsr-value">₹{{ display.male_income|floatformat:2 }}</td>
+        <td class="dsr-avb-cell dsr-value">{% if display.male_avb %}₹{{ display.male_avb|floatformat:2 }}{% else %}—{% endif %}</td>
+      </tr>
+      <tr>
+        <td>Female</td>
+        <td class="dsr-value">{{ display.female_walkins }}</td>
+        <td class="dsr-value">₹{{ display.female_income|floatformat:2 }}</td>
+        <td class="dsr-avb-cell dsr-value">{% if display.female_avb %}₹{{ display.female_avb|floatformat:2 }}{% else %}—{% endif %}</td>
+      </tr>
+      <tr>
+        <td>Kids</td>
+        <td class="dsr-value">{{ display.kids_walkins }}</td>
+        <td class="dsr-value">₹{{ display.kids_income|floatformat:2 }}</td>
+        <td class="dsr-avb-cell dsr-value">{% if display.kids_avb %}₹{{ display.kids_avb|floatformat:2 }}{% else %}—{% endif %}</td>
+      </tr>
+      <tr class="dsr-total-row">
+        <td>Total</td>
+        <td class="dsr-value">{{ display.total_walkins }}</td>
+        <td class="dsr-value">₹{{ display.total_walkin_income|floatformat:2 }}</td>
+        <td class="dsr-avb-cell dsr-value">{% if display.total_avb %}₹{{ display.total_avb|floatformat:2 }}{% else %}—{% endif %}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="dsr-section-title">Mode of Payment</div>
+  <table class="dsr-table dsr-payment-table">
+    <tbody>
+      <tr><td>Card Payment</td><td class="dsr-value">₹{{ display.card_payment|floatformat:2 }}</td></tr>
+      <tr><td>UPI</td><td class="dsr-value">₹{{ display.upi_payment|floatformat:2 }}</td></tr>
+      <tr><td>Cash Payment</td><td class="dsr-value">₹{{ display.cash_payment|floatformat:2 }}</td></tr>
+      <tr class="dsr-total-row">
+        <td>Total</td>
+        <td class="dsr-value">₹{{ display.payment_total|floatformat:2 }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="dsr-section-title">Marketing Updates</div>
+  <div class="dsr-income-grid">
+    <table class="dsr-table">
+      <tbody>
+        <tr><td>No. of calls done</td><td class="dsr-value">{{ display.calls_done }}</td></tr>
+        <tr><td>Zooty Appointment</td><td class="dsr-value">{{ display.zooty_appointment }}</td></tr>
+        <tr><td>By Google appointment</td><td class="dsr-value">{{ display.google_appointment }}</td></tr>
+        <tr><td>Just dial</td><td class="dsr-value">{{ display.just_dial }}</td></tr>
+      </tbody>
+    </table>
+    <table class="dsr-table">
+      <tbody>
+        <tr><td>Status \ Story</td><td class="dsr-value">{{ display.status_story|default:"—" }}</td></tr>
+        <tr><td>Broadcast</td><td class="dsr-value">{{ display.broadcast }}</td></tr>
+        <tr><td>Google reviews</td><td class="dsr-value">{{ display.google_reviews_request|default:"—" }}</td></tr>
+        <tr><td>No of New Clients</td><td class="dsr-value">{{ display.new_clients }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="dsr-section-title">Staff Performance</div>
+  <table class="dsr-table dsr-staff-table">
+    <thead>
+      <tr><th>Name</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for line in display.staff_lines %}
+      <tr>
+        <td>{{ line.staff_name }}</td>
+        <td class="dsr-value">₹{{ line.amount|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2">No staff entries.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="dsr-total-row">
+        <td>Total</td>
+        <td class="dsr-value">₹{{ display.staff_total|floatformat:2 }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: salon
+      POSTGRES_PASSWORD: salon
+      POSTGRES_DB: salon_mis
+    ports:
+      - "5432:5432"
+    volumes:
+      - salon_mis_pg:/var/lib/postgresql/data
+
+volumes:
+  salon_mis_pg:

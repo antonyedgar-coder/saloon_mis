@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Settings — Salon MIS{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+<p class="muted">Manage master data for inventory, petty cash, and daily sales.</p>
+
+{% if inventory_masters %}
+<section class="settings-section">
+  <h2>Inventory Masters</h2>
+  <div class="settings-grid">
+    {% for item in inventory_masters %}
+    <a href="{% url item.url %}" class="settings-card settings-card-{{ item.icon }}">
+      <span class="settings-icon settings-icon-{{ item.icon }}" aria-hidden="true">
+        {% include "includes/icons.html" with name=item.icon %}
+      </span>
+      <strong>{{ item.title }}</strong>
+      <span>{{ item.desc }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if expense_masters %}
+<section class="settings-section">
+  <h2>Expenses Master</h2>
+  <div class="settings-grid">
+    {% for item in expense_masters %}
+    <a href="{% url item.url %}" class="settings-card settings-card-{{ item.icon }}">
+      <span class="settings-icon settings-icon-{{ item.icon }}" aria-hidden="true">
+        {% include "includes/icons.html" with name=item.icon %}
+      </span>
+      <strong>{{ item.title }}</strong>
+      <span>{{ item.desc }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if dsr_masters %}
+<section class="settings-section">
+  <h2>Daily Sales Report</h2>
+  <div class="settings-grid">
+    {% for item in dsr_masters %}
+    <a href="{% url item.url %}" class="settings-card settings-card-{{ item.icon }}">
+      <span class="settings-icon settings-icon-{{ item.icon }}" aria-hidden="true">
+        {% include "includes/icons.html" with name=item.icon %}
+      </span>
+      <strong>{{ item.title }}</strong>
+      <span>{{ item.desc }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Staff Performance Report{% endblock %}
+{% block content %}
+<h1>Staff Performance Report</h1>
+<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a> · Performance from Daily Sales Report across all branches. Salary from Staff Master.</p>
+
+<div class="card">
+  <form method="get" id="staff-perf-filters" class="staff-perf-filters">
+    <div class="grid">
+      <div>
+        <label>Type of report</label>
+        <select name="period_type" id="staff-perf-period-type">
+          {% for val, label in period_types %}
+          <option value="{{ val }}" {% if val == period_type %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Staff</label>
+        <select name="staff">
+          <option value="">All staff</option>
+          {% for s in staff_list %}
+          <option value="{{ s.id }}" {% if selected_staff == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-range"{% if period_type != 'range' %} hidden{% endif %}>
+        <label>From date</label>
+        <input type="date" name="from_date" value="{{ from_date }}">
+      </div>
+      <div class="filter-range"{% if period_type != 'range' %} hidden{% endif %}>
+        <label>To date</label>
+        <input type="date" name="to_date" value="{{ to_date }}">
+      </div>
+      <div class="filter-monthly monthly-picker"{% if period_type != 'monthly' %} hidden{% endif %}>
+        <div>
+          <label>Year</label>
+          <select name="report_year">
+            {% for y in year_choices %}
+            <option value="{{ y }}" {% if y == report_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label>Month</label>
+          <select name="report_month_num">
+            {% for num, name in month_choices %}
+            <option value="{{ num }}" {% if num|stringformat:"s" == report_month_num %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="filter-yearly"{% if period_type != 'yearly' %} hidden{% endif %}>
+        <label>Financial year (Apr – Mar)</label>
+        <select name="financial_year">
+          {% for val, label in fy_choices %}
+          <option value="{{ val }}" {% if val == financial_year %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit" name="run" value="1">View report</button>
+      {% if ran_report and rows %}
+      <a class="btn btn-secondary" id="staff-perf-export-xlsx" href="#">Download Excel</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if error_message %}
+<div class="alert alert-error">{{ error_message }}</div>
+{% endif %}
+
+{% if ran_report %}
+<div class="card">
+  <h2>{{ period_label }}</h2>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="{% if forloop.last and rows|length > 1 %}staff-perf-total-row{% endif %}">
+          {% for cell in row %}
+          <td>{% if cell == '' %}—{% else %}{{ cell }}{% endif %}</td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{{ headers|length }}">No staff performance data for the selected filters.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<script src="{% static 'js/staff-performance-report.js' %}?v=2"></script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Reports</h1>
+<p class="muted">Choose a report category.</p>
+
+<div class="hub-grid">
+  {% if can_sales %}
+  <a href="{% url 'reports:sales' %}" class="hub-card">
+    <strong>Sales Report</strong>
+    <span>Daily, monthly, and yearly sales from daily sales entries</span>
+  </a>
+  {% endif %}
+  {% if can_staff_perf %}
+  <a href="{% url 'reports:staff_performance' %}" class="hub-card">
+    <strong>Staff Performance Report</strong>
+    <span>Date range, month-wise, and year-wise staff performance from DSR</span>
+  </a>
+  {% endif %}
+  {% if can_incentive %}
+  <a href="{% url 'reports:incentive' %}" class="hub-card">
+    <strong>Incentive Report</strong>
+    <span>Daily, weekly, and monthly incentive vs salary-based targets</span>
+  </a>
+  {% endif %}
+  {% if can_inventory_reports %}
+  <a href="{% url 'reports:inventory' %}" class="hub-card">
+    <strong>Inventory Reports</strong>
+    <span>Stock inward, outward, balances, and related exports</span>
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

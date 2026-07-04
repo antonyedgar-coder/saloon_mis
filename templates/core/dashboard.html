@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Salon MIS{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="grid">
+  <div class="stat"><small>Pending transfers</small><strong>{{ pending_transfers }}</strong></div>
+  <div class="stat"><small>Today's retail sales (₹)</small><strong>{{ today_retail }}</strong></div>
+  <div class="stat"><small>Posted GRNs</small><strong>{{ posted_grns }}</strong></div>
+</div>
+{% if low_stock %}
+<div class="card">
+  <h3>Low stock alerts</h3>
+  <ul>
+    {% for item in low_stock %}
+      <li>{{ item.product.name }} — {{ item.qty }} (reorder: {{ item.product.reorder_level }})</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

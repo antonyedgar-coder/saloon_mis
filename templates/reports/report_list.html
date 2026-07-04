@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventory Reports</h1>
+<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a></p>
+<div class="card">
+  <form method="get">
+    <div class="grid">
+      <div><label>Report type</label>
+        <select name="type">{% for val, label in report_types %}<option value="{{ val }}" {% if val == selected_type %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      </div>
+      <div><label>Branch</label>
+        <select name="branch"><option value="">All / Central</option>{% for b in branches %}<option value="{{ b.id }}" {% if selected_branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>{% endfor %}</select>
+      </div>
+    </div>
+    <button class="btn" type="submit">Refresh</button>
+    <a class="btn btn-secondary" href="?type={{ selected_type }}&branch={{ selected_branch }}&export=xlsx">Download Excel</a>
+  </form>
+</div>
+<div class="card">
+  <table>
+    <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ headers|length }}">No data</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

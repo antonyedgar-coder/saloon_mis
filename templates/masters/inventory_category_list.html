@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Inventory Category</h1>
+<p class="muted"><a href="{% url 'settings' %}">← Settings</a></p>
+
+<div class="card">
+  <h2>{% if edit_obj %}Edit category{% else %}Add category{% endif %}</h2>
+  <form method="post">{% csrf_token %}
+    {% if edit_obj %}<input type="hidden" name="edit_id" value="{{ edit_obj.pk }}">{% endif %}
+    <div class="grid">
+      <div><label>Category name</label><input name="name" value="{{ form.name.value|default:'' }}" required placeholder="e.g. Hair Care, Skin Care"></div>
+      <div><label><input type="checkbox" name="active" {% if form.active.value != False %}checked{% endif %}> Active</label></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">{% if edit_obj %}Save{% else %}Add{% endif %}</button>
+      {% if edit_obj %}<a class="btn btn-secondary" href="{% url 'masters:inventory_categories' %}">Cancel</a>{% endif %}
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Category</th><th>Active</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for c in categories %}
+      <tr>
+        <td>{{ c.name }}</td><td>{{ c.active }}</td>
+        <td class="actions">
+          <a class="btn btn-sm btn-secondary" href="?edit={{ c.pk }}">Edit</a>
+          <form method="post" class="inline-form" onsubmit="return confirm('Delete this category?');">{% csrf_token %}
+            <input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{ c.pk }}">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="3">No categories yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

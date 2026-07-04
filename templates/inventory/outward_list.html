@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Outward Register{% endblock %}
+{% block content %}
+<h1>Outward Register</h1>
+<p class="muted"><a href="{% url 'inventory:hub' %}">← Inventory</a></p>
+
+<div class="card">
+  <h2>Dispatch stock to branch</h2>
+  <form method="post" id="outward-form">{% csrf_token %}
+    <div class="grid">
+      <div>
+        <label>Date</label>
+        <input type="date" name="date" value="{{ today }}" required>
+      </div>
+      <div>
+        <label>Branch</label>
+        <select name="branch_id" required>
+          <option value="">Select branch</option>
+          {% for b in branches %}<option value="{{ b.id }}">{{ b.name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <h3>Products to dispatch</h3>
+    <div class="line-row-header"><span>Product</span><span>Quantity</span><span></span></div>
+    <div id="outward-lines" class="line-rows"></div>
+    <button type="button" class="btn btn-secondary" id="outward-add-line">+ Add product</button>
+    <div class="form-actions">
+      <button class="btn" type="submit">Dispatch to branch</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Dispatch history</h2>
+  {% include "inventory/includes/list_filters.html" %}
+  <table>
+    <thead><tr><th>Register</th><th>Date</th><th>Branch</th><th>Products</th></tr></thead>
+    <tbody>
+      {% for r in registers %}
+      {% for i in r.invoices.all %}
+      <tr>
+        <td>{{ r.register_number }}</td>
+        <td>{{ r.date }}</td>
+        <td>{{ i.branch.name }}</td>
+        <td>{% for l in i.lines.all %}{{ l.product.name }} ({{ l.quantity_sent }}){% if not forloop.last %}; {% endif %}{% endfor %}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td>{{ r.register_number }}</td><td>{{ r.date }}</td><td>—</td><td>—</td>
+      </tr>
+      {% endfor %}
+      {% empty %}<tr><td colspan="4">No dispatches yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{{ products_list|json_script:"products-data" }}
+<script src="{% static 'js/inventory-forms.js' %}?v=4"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  initLineRows({
+    containerId: "outward-lines",
+    addButtonId: "outward-add-line",
+    productsDataId: "products-data",
+  });
+});
+</script>
+{% endblock %}

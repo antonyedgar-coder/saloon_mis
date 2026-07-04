@@ -1,0 +1,58 @@
+{
+  "name": "Daily Sales Report (DSR)",
+  "description": "Branch daily sales sheet with income, walk-ins, marketing updates, and staff performance.",
+  "sections": [
+    {
+      "title": "Header",
+      "fields": [
+        { "key": "branchName", "label": "Branch", "type": "text" },
+        { "key": "reportDate", "label": "Date", "type": "date" }
+      ]
+    },
+    {
+      "title": "Income",
+      "columns": [
+        [
+          { "key": "netServiceIncome", "label": "Net Service income", "type": "currency" },
+          { "key": "membershipCard", "label": "Membership Card", "type": "currency" },
+          { "key": "earPiercing", "label": "Ear Piercing", "type": "currency" },
+          { "key": "otherIncome", "label": "Other Income", "type": "currency" }
+        ],
+        [
+          { "key": "productSale18", "label": "Product Sale 18%", "type": "currency" },
+          { "key": "productSale5", "label": "Product Sale 5%", "type": "currency" },
+          { "key": "gst", "label": "GST", "type": "currency" },
+          { "key": "bridalAdvance", "label": "Bridal Advance", "type": "currency" }
+        ]
+      ]
+    },
+    {
+      "title": "Walk Ins",
+      "rows": ["Male", "Female", "Kids", "Total"],
+      "columns": [
+        { "key": "walkins", "label": "Walkins", "type": "number" },
+        { "key": "income", "label": "Income", "type": "currency" }
+      ]
+    },
+    {
+      "title": "Marketing Updates",
+      "fields": [
+        { "key": "callsDone", "label": "No. of calls done", "type": "number" },
+        { "key": "zootyAppointment", "label": "Zooty appointment", "type": "number" },
+        { "key": "googleAppointment", "label": "By Google appointment", "type": "number" },
+        { "key": "justDial", "label": "Just dial", "type": "number" },
+        { "key": "statusStory", "label": "Status \\ Story", "type": "text" },
+        { "key": "broadcast", "label": "Broadcast", "type": "number" },
+        { "key": "googleReviewsRequest", "label": "Google reviews (4.5) \\ Request", "type": "text" },
+        { "key": "newClients", "label": "No of New Clients", "type": "number" }
+      ]
+    },
+    {
+      "title": "Staff Performance",
+      "columns": [
+        { "key": "staffName", "label": "Name", "type": "staff_lookup" },
+        { "key": "amount", "label": "Amount", "type": "currency" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Petty Cash Report",
+  "description": "Standard petty cash layout for Salon MIS. Replace with uploaded Excel/PDF columns when available.",
+  "columns": [
+    { "key": "entryDate", "label": "Date", "type": "date" },
+    { "key": "branchName", "label": "Branch", "type": "text" },
+    { "key": "openingBalance", "label": "Opening Balance (₹)", "type": "currency" },
+    { "key": "receipts", "label": "Receipts (₹)", "type": "currency" },
+    { "key": "payments", "label": "Payments (₹)", "type": "currency" },
+    { "key": "closingBalance", "label": "Closing Balance (₹)", "type": "currency", "formula": "openingBalance + receipts - payments" },
+    { "key": "particulars", "label": "Particulars", "type": "text" },
+    { "key": "remarks", "label": "Remarks", "type": "text" }
+  ]
+}
