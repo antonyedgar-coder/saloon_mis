@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 
@@ -26,12 +26,26 @@ class Branch(models.Model):
         return self.name
 
 
+class SaloonUserManager(UserManager):
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("role", Role.SUPER_ADMIN)
+        extra_fields.setdefault("inv_grn", True)
+        extra_fields.setdefault("inv_outward", True)
+        extra_fields.setdefault("inv_receive", True)
+        extra_fields.setdefault("inv_branch_outward", True)
+        extra_fields.setdefault("inv_stock", True)
+        return super().create_superuser(username, email, password, **extra_fields)
+
+
 class User(AbstractUser):
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.BRANCH_STAFF)
     branches = models.ManyToManyField(Branch, blank=True, related_name="users")
+    objects = SaloonUserManager()
 
     def is_central(self):
-        return self.role in CENTRAL_ROLES
+        return self.is_superuser or self.role in CENTRAL_ROLES
 
     def can_access_branch(self, branch_id):
         if self.is_central():
@@ -52,7 +66,7 @@ class User(AbstractUser):
     inv_stock = models.BooleanField(default=True)
 
     def has_any_inventory_access(self):
-        if self.role == Role.SUPER_ADMIN:
+        if self.is_superuser or self.role == Role.SUPER_ADMIN:
             return True
         return self.inv_grn or self.inv_outward or self.inv_receive or self.inv_branch_outward or self.inv_stock
 

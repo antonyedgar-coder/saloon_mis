@@ -1,4 +1,4 @@
-﻿# Saloon MIS
+﻿# Salon MIS
 
 Management Information System for salon operations — built with **Django**.
 
@@ -19,24 +19,18 @@ Management Information System for salon operations — built with **Django**.
 ## Getting started
 
 ```bash
-cd saloon-mis
+cd salon-mis
 python -m venv .venv
 .venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py seed_demo
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-### Demo users
-
-| Role | Username | Password |
-|------|----------|----------|
-| Super Admin | admin | admin123 |
-| Accounts | accounts | accounts123 |
-| Branch Manager | manager | manager123 |
+Create your own admin with `createsuperuser` (role is set to Super Admin automatically).
 
 ## Production (PostgreSQL)
 
@@ -47,7 +41,7 @@ docker compose up -d
 Set in `.env`:
 
 ```
-DATABASE_URL=postgresql://saloon:saloon@localhost:5432/saloon_mis
+DATABASE_URL=postgresql://salon:salon@localhost:5432/salon_mis
 SECRET_KEY=your-long-random-secret
 DEBUG=False
 ```

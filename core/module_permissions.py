@@ -121,7 +121,7 @@ def permissions_matrix_for_user(user):
     """Return {module: {view, create, edit, delete}} for form display."""
     if user is None:
         return defaults_for_role(Role.BRANCH_STAFF)
-    if user.role == Role.SUPER_ADMIN:
+    if user.is_superuser or user.role == Role.SUPER_ADMIN:
         return {key: _all(True) for key, _ in MODULES}
 
     matrix = defaults_for_role(user.role)
@@ -139,7 +139,7 @@ def user_can(user, module, action="view"):
     """Check whether user may perform action on module."""
     if not user or not user.is_authenticated:
         return False
-    if getattr(user, "role", None) == Role.SUPER_ADMIN:
+    if user.is_superuser or getattr(user, "role", None) == Role.SUPER_ADMIN:
         return True
     if action not in ACTIONS:
         return False
@@ -175,7 +175,7 @@ def save_user_permissions(user, post_data):
     """Read perm_<module>_<action> checkboxes from POST and save."""
     from core.models import UserModulePermission
 
-    if user.role == Role.SUPER_ADMIN:
+    if user.is_superuser or user.role == Role.SUPER_ADMIN:
         user.module_permissions.all().delete()
         return
 
@@ -240,6 +240,6 @@ def has_reports_access(user):
 
 
 def has_inventory_access(user):
-    if getattr(user, "role", None) == Role.SUPER_ADMIN:
+    if user.is_superuser or getattr(user, "role", None) == Role.SUPER_ADMIN:
         return True
     return has_any_module_view(user, INVENTORY_MODULES) or user.has_any_inventory_access()

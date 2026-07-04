@@ -9,7 +9,7 @@ DOMAIN_OR_IP="${DOMAIN_OR_IP:-168.144.17.152}"
 
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL to your GitHub clone URL, e.g.:"
-  echo "  REPO_URL=https://github.com/YOU/saloon-mis.git bash deploy/setup_droplet.sh"
+  echo "  REPO_URL=https://github.com/YOU/saloon_mis.git bash deploy/setup_droplet.sh"
   exit 1
 fi
 
@@ -51,15 +51,37 @@ fi
 .venv/bin/python manage.py migrate --noinput
 .venv/bin/python manage.py collectstatic --noinput
 
-# Optional demo users (ignore if command missing)
-.venv/bin/python manage.py seed_demo 2>/dev/null || true
-
 chown -R www-data:www-data "$APP_DIR" /var/log/saloon-mis
 chmod 640 "$APP_DIR/.env"
 
 cp deploy/saloon-mis.service /etc/systemd/system/saloon-mis.service
-sed "s/168.144.17.152/${DOMAIN_OR_IP}/g; s/YOUR_DOMAIN_OR_IP/${DOMAIN_OR_IP}/g" deploy/nginx-saloon-mis.conf \
-  > /etc/nginx/sites-available/saloon-mis
+
+# Write nginx config without BOM (sed from Windows files can corrupt the first byte)
+cat > /etc/nginx/sites-available/saloon-mis <<EOF
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name ${DOMAIN_OR_IP};
+
+    client_max_body_size 20M;
+
+    location /static/ {
+        alias ${APP_DIR}/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        proxy_pass http://unix:/run/saloon-mis/saloon-mis.sock;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_redirect off;
+    }
+}
+EOF
+
 ln -sfn /etc/nginx/sites-available/saloon-mis /etc/nginx/sites-enabled/saloon-mis
 rm -f /etc/nginx/sites-enabled/default
 

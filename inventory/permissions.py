@@ -11,7 +11,7 @@ class _InvModuleMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
-        if user.role == Role.SUPER_ADMIN:
+        if user.is_superuser or user.role == Role.SUPER_ADMIN:
             return True
         action = "view"
         if self.request.method in ("POST", "PUT", "PATCH"):
