@@ -1,33 +1,130 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Incentive Master{% endblock %}
 {% block content %}
 <h1>Incentive Master</h1>
-<p class="muted"><a href="{% url 'settings' %}">← Settings</a> · Rules apply from the effective date. Earlier periods keep the previous incentive % and salary-times target.</p>
+<p class="muted"><a href="{% url 'settings' %}">← Settings</a> · Configure separate rules for Daily, Weekly, and Monthly reports. The incentive report uses only the matching period settings.</p>
 
 <div class="card">
-  <form method="post">{% csrf_token %}
+  <form method="post" id="incentive-settings-form">{% csrf_token %}
     <div class="grid">
       <div>
-        <label>Incentive %</label>
-        <input name="incentive_percent" type="number" step="0.01" min="0" value="{{ form.incentive_percent.value|default:'0' }}" required>
-        <p class="muted">Paid only when target achieved is equal to or more than target. Incentive = Incentive % × Target achieved.</p>
-      </div>
-      <div>
-        <label>No. of times of salary as target</label>
-        <input name="salary_times" type="number" step="0.01" min="0" value="{{ form.salary_times.value|default:'5' }}" required>
-        <p class="muted">Monthly target = Salary × this value. Daily = that ÷ 30. Weekly = that ÷ 4.</p>
-      </div>
-      <div>
         <label>Effective from</label>
-        <input name="effective_from" type="date" value="{% if form.effective_from.value %}{{ form.effective_from.value|date:'Y-m-d' }}{% endif %}" required>
-        <p class="muted">New rules apply from this date onward only.</p>
+        <input name="effective_from" type="date" value="{{ effective_from }}" required>
+        <p class="muted">Changes apply from this date. Earlier report dates keep previous rules.</p>
       </div>
     </div>
-    {% if form.errors %}
-    <div class="alert alert-error">{{ form.errors }}</div>
-    {% endif %}
+
+    <div class="incentive-period-tabs">
+      {% for config in period_configs %}
+      <button type="button" class="incentive-period-tab{% if forloop.first %} is-active{% endif %}" data-period="{{ config.period_type }}">{{ config.label }}</button>
+      {% endfor %}
+    </div>
+
+    {% for config in period_configs %}
+    <div class="incentive-period-panel{% if not forloop.first %} is-hidden{% endif %}" data-period="{{ config.period_type }}">
+      <p class="muted">These settings apply when the Incentive Report type is <strong>{{ config.label }}</strong>.</p>
+
+      <h2 class="incentive-section-title">Service target incentive</h2>
+      <label class="incentive-enable-row">
+        <input type="checkbox" name="{{ config.period_type }}_service_enabled"{% if config.profile.service_enabled %} checked{% endif %}>
+        Enable service target incentive
+      </label>
+      <div class="grid">
+        <div>
+          <label>Incentive %</label>
+          <input name="{{ config.period_type }}_incentive_percent" type="number" step="0.01" min="0" value="{{ config.profile.incentive_percent }}">
+          <p class="muted">Paid when service achieved ≥ target. Incentive = Incentive % × Service achieved.</p>
+        </div>
+        <div>
+          <label>No. of times of salary as target</label>
+          <input name="{{ config.period_type }}_salary_times" type="number" step="0.01" min="0" value="{{ config.profile.salary_times }}">
+          <p class="muted">Service target = Salary × this value for {{ config.label|lower }} reports.</p>
+        </div>
+      </div>
+
+      <h2 class="incentive-section-title">Retail sale incentive (branch outward)</h2>
+      <label class="incentive-enable-row">
+        <input type="checkbox" name="{{ config.period_type }}_retail_enabled"{% if config.profile.retail_enabled %} checked{% endif %}>
+        Enable retail sale incentive
+      </label>
+      <p class="muted">Slab-based incentive on staff retail sale amount from branch outward.</p>
+      <div class="incentive-slab-table-wrap">
+        <table class="incentive-slab-table">
+          <thead>
+            <tr>
+              <th>Sale from (₹)</th>
+              <th>Sale to (₹)</th>
+              <th>Incentive value (₹)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="incentive-slab-rows-{{ config.period_type }}">
+            {% for slab in config.slabs %}
+            <tr class="incentive-slab-row">
+              <td><input name="{{ config.period_type }}_slab_sale_from" type="number" step="0.01" min="0" value="{{ slab.sale_from }}" class="input"></td>
+              <td><input name="{{ config.period_type }}_slab_sale_to" type="number" step="0.01" min="0" value="{% if slab.sale_to %}{{ slab.sale_to }}{% endif %}" class="input" placeholder="No limit"></td>
+              <td><input name="{{ config.period_type }}_slab_incentive_value" type="number" step="0.01" min="0" value="{{ slab.incentive_value }}" class="input"></td>
+              <td><button type="button" class="btn btn-secondary btn-sm incentive-slab-remove" title="Remove">×</button></td>
+            </tr>
+            {% empty %}
+            <tr class="incentive-slab-row">
+              <td><input name="{{ config.period_type }}_slab_sale_from" type="number" step="0.01" min="0" value="0" class="input"></td>
+              <td><input name="{{ config.period_type }}_slab_sale_to" type="number" step="0.01" min="0" value="" class="input" placeholder="No limit"></td>
+              <td><input name="{{ config.period_type }}_slab_incentive_value" type="number" step="0.01" min="0" value="0" class="input"></td>
+              <td><button type="button" class="btn btn-secondary btn-sm incentive-slab-remove" title="Remove">×</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-secondary incentive-add-slab" data-period="{{ config.period_type }}">+ Add slab</button>
+
+      <h2 class="incentive-section-title">Staff performance incentives</h2>
+      <label class="incentive-enable-row">
+        <input type="checkbox" name="{{ config.period_type }}_staff_performance_enabled"{% if config.profile.staff_performance_enabled %} checked{% endif %}>
+        Enable staff performance incentive
+      </label>
+      <h3 class="incentive-subsection-title">Percentage based</h3>
+      <div class="grid">
+        <div>
+          <label>Make-up incentive (%)</label>
+          <input name="{{ config.period_type }}_makeup_percent" type="number" step="0.01" min="0" max="100" value="{{ config.profile.makeup_percent }}">
+          <p class="muted">Incentive = Make-up amount (DSR) × this %.</p>
+        </div>
+      </div>
+      <h3 class="incentive-subsection-title">Fixed amount (₹)</h3>
+      <div class="grid">
+        <div>
+          <label>Google review with photo (₹ per review)</label>
+          <input name="{{ config.period_type }}_google_review_with_photo_incentive" type="number" step="0.01" min="0" value="{{ config.profile.google_review_with_photo_incentive }}">
+        </div>
+        <div>
+          <label>Google review without photo (₹ per review)</label>
+          <input name="{{ config.period_type }}_google_review_without_photo_incentive" type="number" step="0.01" min="0" value="{{ config.profile.google_review_without_photo_incentive }}">
+        </div>
+        <div>
+          <label>Ear piercing (₹ per unit)</label>
+          <input name="{{ config.period_type }}_ear_piercing_incentive" type="number" step="0.01" min="0" value="{{ config.profile.ear_piercing_incentive }}">
+        </div>
+        <div>
+          <label>Watts (₹ per unit)</label>
+          <input name="{{ config.period_type }}_watts_incentive" type="number" step="0.01" min="0" value="{{ config.profile.watts_incentive }}">
+        </div>
+        <div>
+          <label>Membership card (₹ per unit)</label>
+          <input name="{{ config.period_type }}_membership_card_incentive" type="number" step="0.01" min="0" value="{{ config.profile.membership_card_incentive }}">
+        </div>
+        <div>
+          <label>OT (₹ per unit)</label>
+          <input name="{{ config.period_type }}_ot_incentive" type="number" step="0.01" min="0" value="{{ config.profile.ot_incentive }}">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
     <div class="form-actions">
-      <button class="btn" type="submit">Save</button>
+      <button class="btn" type="submit">Save all periods</button>
     </div>
   </form>
 </div>
@@ -37,18 +134,34 @@
   <h2>History</h2>
   <table>
     <thead>
-      <tr><th>Effective from</th><th>Incentive %</th><th>Salary times</th></tr>
+      <tr>
+        <th>Effective from</th>
+        <th>Period</th>
+        <th>Service</th>
+        <th>Incentive %</th>
+        <th>Salary times</th>
+        <th>Retail</th>
+        <th>Staff perf</th>
+        <th>Make-up %</th>
+      </tr>
     </thead>
     <tbody>
       {% for v in versions %}
       <tr>
         <td>{{ v.effective_from }}</td>
+        <td>{{ v.get_period_type_display }}</td>
+        <td>{% if v.service_enabled %}Yes{% else %}—{% endif %}</td>
         <td>{{ v.incentive_percent }}</td>
         <td>{{ v.salary_times }}</td>
+        <td>{% if v.retail_enabled %}Yes{% else %}—{% endif %}</td>
+        <td>{% if v.staff_performance_enabled %}Yes{% else %}—{% endif %}</td>
+        <td>{{ v.makeup_percent }}%</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 {% endif %}
+
+<script src="{% static 'js/incentive-settings.js' %}?v=1"></script>
 {% endblock %}

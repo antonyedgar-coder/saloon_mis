@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Bulk upload — Inventory Master</h1>
+<p class="muted"><a href="{% url 'masters:products' %}">← Inventory Name</a> · Upload many products at once for initial go-live.</p>
+
+<div class="card">
+  <h2>File format</h2>
+  <p class="muted">CSV or Excel (.xlsx) with these columns:</p>
+  <table>
+    <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Inventory Name</td><td>Yes</td><td>Matched by name. New names are created.</td></tr>
+      <tr><td>Inventory Category</td><td>Yes</td><td>Must already exist in Inventory Category master.</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">If the inventory name already exists, only its category is updated when different.</p>
+  <p><a class="btn btn-secondary" href="?template=1">Download template CSV</a></p>
+</div>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <label>Upload file</label>
+    <input type="file" name="upload_file" accept=".csv,.xlsx,.xlsm" required>
+    <div class="form-actions">
+      <button class="btn" type="submit">Upload inventory master</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

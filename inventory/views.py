@@ -602,6 +602,79 @@ class StockBalanceView(InvStockRequiredMixin, View):
         )
 
 
+class OpeningStockBulkUploadView(InvStockRequiredMixin, View):
+    template_name = "inventory/opening_stock_upload.html"
+
+    def get(self, request):
+        from core.bulk_upload_utils import csv_template_response
+        from django.utils import timezone
+
+        from inventory.opening_stock_upload import OPENING_STOCK_HEADERS
+
+        if request.GET.get("template") == "1":
+            sample_rows = [
+                ["Central (HO)", "Sample Shampoo 100ml", "50", timezone.localdate().isoformat()],
+                ["Kumarapuram", "Sample Shampoo 100ml", "10", timezone.localdate().isoformat()],
+            ]
+            return csv_template_response(
+                "opening_stock_template.csv",
+                OPENING_STOCK_HEADERS,
+                sample_rows,
+            )
+
+        branches = (
+            Branch.objects.filter(active=True)
+            if request.user.is_central()
+            else request.user.branches.filter(active=True)
+        )
+        return render(
+            request,
+            self.template_name,
+            {
+                "branches": branches,
+                "default_stock_date": timezone.localdate().isoformat(),
+                "is_central": request.user.is_central(),
+            },
+        )
+
+    def post(self, request):
+        from django.utils.dateparse import parse_date
+
+        from inventory.opening_stock_upload import (
+            apply_opening_stock_upload,
+            parse_opening_stock_upload,
+        )
+
+        uploaded = request.FILES.get("upload_file")
+        stock_date = parse_date(request.POST.get("stock_date") or "")
+        if not uploaded:
+            messages.error(request, "Choose a CSV or Excel file to upload.")
+            return redirect("inventory:opening_stock_upload")
+        if not stock_date:
+            messages.error(request, "Enter a valid opening stock date.")
+            return redirect("inventory:opening_stock_upload")
+
+        try:
+            parsed_rows = parse_opening_stock_upload(uploaded)
+            result = apply_opening_stock_upload(
+                parsed_rows=parsed_rows,
+                stock_date=stock_date,
+                user=request.user,
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect("inventory:opening_stock_upload")
+
+        messages.success(
+            request,
+            f"Opening stock saved for {result['branches']} location(s), "
+            f"{result['lines']} line(s), total qty {result['total_qty']} "
+            f"as at {result['stock_date']}. Previous opening stock for those "
+            f"locations was replaced.",
+        )
+        return redirect("inventory:opening_stock_upload")
+
+
 class InventoryHubView(LoginRequiredMixin, View):
     template_name = "inventory/hub.html"
 
@@ -630,6 +703,14 @@ class InventoryHubView(LoginRequiredMixin, View):
         if user_can(user, "inv_stock", "view"):
             links.append(
                 {"title": "Stock Balance", "desc": "Central & branch stock levels", "url": "inventory:stock"}
+            )
+        if user_can(user, "inv_stock", "create") or user_can(user, "inv_stock", "edit"):
+            links.append(
+                {
+                    "title": "Opening Stock Upload",
+                    "desc": "Bulk upload go-live opening stock (HO + branches)",
+                    "url": "inventory:opening_stock_upload",
+                }
             )
 
         return render(request, self.template_name, {"links": links})

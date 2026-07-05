@@ -164,6 +164,43 @@ class StockRefType(models.TextChoices):
     OUTWARD_DISPATCH = "OUTWARD_DISPATCH", "Outward Dispatch"
     TRANSFER_RECEIVE = "TRANSFER_RECEIVE", "Transfer Receive"
     BRANCH_OUTWARD = "BRANCH_OUTWARD", "Branch Outward"
+    OPENING_STOCK = "OPENING_STOCK", "Opening Stock"
+
+
+class OpeningStockUpload(models.Model):
+    """One-time go-live opening stock batch for HO or a branch."""
+
+    branch = models.ForeignKey(
+        Branch,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="opening_stock_uploads",
+    )
+    stock_date = models.DateField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-stock_date", "-pk"]
+
+    def __str__(self):
+        location = self.branch.name if self.branch_id else "Central (HO)"
+        return f"Opening stock — {location} ({self.stock_date})"
+
+
+class OpeningStockLine(models.Model):
+    upload = models.ForeignKey(
+        OpeningStockUpload,
+        on_delete=models.CASCADE,
+        related_name="lines",
+    )
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    expiry_date = models.DateField()
+
+    class Meta:
+        ordering = ["id"]
 
 
 class StockLedger(models.Model):

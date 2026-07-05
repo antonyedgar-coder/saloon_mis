@@ -15,7 +15,6 @@ from core.models import Branch, User
 from .forms import (
     BranchForm,
     ExpenseParticularForm,
-    IncentiveSettingsForm,
     InventoryCategoryForm,
     ProductForm,
     StaffForm,
@@ -24,7 +23,6 @@ from .forms import (
 )
 from .models import (
     ExpenseParticular,
-    IncentiveSettings,
     IncentiveSettingsVersion,
     InventoryCategory,
     Product,
@@ -249,44 +247,54 @@ class IncentiveSettingsView(ModulePermissionMixin, View):
     module = "master_incentive"
     template_name = "masters/incentive_settings.html"
 
-    def get(self, request):
+    def _context(self, effective_from=None):
         from django.utils import timezone
 
-        settings_obj = IncentiveSettings.get_solo()
-        form = IncentiveSettingsForm(
-            instance=settings_obj,
-            initial={"effective_from": timezone.localdate()},
-        )
-        versions = IncentiveSettingsVersion.objects.order_by("-effective_from", "-pk")[:20]
-        return render(
-            request,
-            self.template_name,
-            {"form": form, "versions": versions},
-        )
+        from masters.incentive_master import PERIOD_LABELS, PERIOD_TYPES, profiles_for_template
+
+        profiles, slabs = profiles_for_template()
+        period_configs = [
+            {
+                "period_type": period_type,
+                "label": PERIOD_LABELS[period_type],
+                "profile": profiles[period_type],
+                "slabs": slabs[period_type],
+            }
+            for period_type in PERIOD_TYPES
+        ]
+        versions = IncentiveSettingsVersion.objects.order_by(
+            "-effective_from", "-pk", "period_type"
+        )[:30]
+        return {
+            "period_configs": period_configs,
+            "effective_from": effective_from or timezone.localdate().isoformat(),
+            "versions": versions,
+        }
+
+    def get(self, request):
+        return render(request, self.template_name, self._context())
 
     def post(self, request):
-        from masters.incentive_history import record_incentive_settings_version
+        from datetime import datetime
 
-        settings_obj = IncentiveSettings.get_solo()
-        form = IncentiveSettingsForm(request.POST, instance=settings_obj)
-        if form.is_valid():
-            settings_obj = form.save()
-            record_incentive_settings_version(
-                settings_obj.incentive_percent,
-                settings_obj.salary_times,
-                form.cleaned_data["effective_from"],
-            )
-            messages.success(
-                request,
-                f"Incentive settings saved from {form.cleaned_data['effective_from']}.",
-            )
-            return redirect("masters:incentive")
-        versions = IncentiveSettingsVersion.objects.order_by("-effective_from", "-pk")[:20]
-        return render(
+        from masters.incentive_history import record_all_period_versions
+        from masters.incentive_master import parse_all_period_configs, save_period_profiles
+
+        effective_from_raw = request.POST.get("effective_from")
+        try:
+            effective_from = datetime.strptime(effective_from_raw, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            messages.error(request, "Enter a valid effective from date.")
+            return render(request, self.template_name, self._context(effective_from_raw))
+
+        all_configs = parse_all_period_configs(request.POST)
+        save_period_profiles(all_configs)
+        record_all_period_versions(all_configs, effective_from)
+        messages.success(
             request,
-            self.template_name,
-            {"form": form, "versions": versions},
+            f"Incentive settings saved for Daily, Weekly, and Monthly from {effective_from}.",
         )
+        return redirect("masters:incentive")
 
 
 class UserListView(ModulePermissionMixin, View):
@@ -400,3 +408,42 @@ class ExpenseParticularListView(ModulePermissionMixin, View):
                 "edit_obj": instance,
             },
         )
+
+
+class ProductBulkUploadView(ModulePermissionMixin, View):
+    module = "master_products"
+    template_name = "masters/product_bulk_upload.html"
+
+    def get(self, request):
+        from core.bulk_upload_utils import csv_template_response
+        from masters.product_bulk_upload import PRODUCT_HEADERS
+
+        if request.GET.get("template") == "1":
+            return csv_template_response(
+                "inventory_master_template.csv",
+                PRODUCT_HEADERS,
+                [["Sample Shampoo 100ml", "Retail Products"]],
+            )
+        return render(request, self.template_name)
+
+    def post(self, request):
+        from masters.product_bulk_upload import apply_product_upload, parse_product_upload
+
+        uploaded = request.FILES.get("upload_file")
+        if not uploaded:
+            messages.error(request, "Choose a CSV or Excel file to upload.")
+            return render(request, self.template_name)
+
+        try:
+            parsed_rows = parse_product_upload(uploaded)
+            result = apply_product_upload(parsed_rows)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return render(request, self.template_name)
+
+        messages.success(
+            request,
+            f"Upload complete. Created {result['created']}, updated {result['updated']}, "
+            f"skipped {result['skipped']} (already matched).",
+        )
+        return redirect("masters:products")

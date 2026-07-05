@@ -8,6 +8,7 @@ from inventory.models import (
     BranchOutward,
     Grn,
     GrnStatus,
+    OpeningStockUpload,
     OutwardInvoice,
     OutwardRegister,
     OutwardRegisterStatus,
@@ -115,6 +116,13 @@ def _particulars_for_entry(entry, cache):
             return f"Branch outward {doc.doc_number} ({label})"
         return "Branch outward"
 
+    if entry.ref_type == StockRefType.OPENING_STOCK:
+        upload = cache["opening_uploads"].get(ref_pk)
+        if upload:
+            location = upload.branch.name if upload.branch_id else "Central (HO)"
+            return f"Opening stock — {location}"
+        return "Opening stock"
+
     return entry.get_ref_type_display()
 
 
@@ -122,6 +130,7 @@ def _load_ledger_cache(entries):
     grn_ids = set()
     invoice_ids = set()
     outward_ids = set()
+    opening_ids = set()
     for entry in entries:
         ref_id = entry.ref_id.split("-")[0]
         try:
@@ -134,6 +143,8 @@ def _load_ledger_cache(entries):
             invoice_ids.add(ref_pk)
         elif entry.ref_type == StockRefType.BRANCH_OUTWARD:
             outward_ids.add(ref_pk)
+        elif entry.ref_type == StockRefType.OPENING_STOCK:
+            opening_ids.add(ref_pk)
 
     return {
         "grns": {
@@ -150,15 +161,25 @@ def _load_ledger_cache(entries):
             o.pk: o
             for o in BranchOutward.objects.filter(pk__in=outward_ids).select_related("branch")
         },
+        "opening_uploads": {
+            u.pk: u
+            for u in OpeningStockUpload.objects.filter(pk__in=opening_ids).select_related(
+                "branch"
+            )
+        },
     }
 
 
 def build_inventory_statement(branch_id, product_id, from_date, to_date):
     headers = ["Date", "Particulars", "In", "Out", "Closing stock"]
     if branch_id is None:
-        allowed = {StockRefType.GRN, StockRefType.OUTWARD_DISPATCH}
+        allowed = {StockRefType.GRN, StockRefType.OUTWARD_DISPATCH, StockRefType.OPENING_STOCK}
     else:
-        allowed = {StockRefType.TRANSFER_RECEIVE, StockRefType.BRANCH_OUTWARD}
+        allowed = {
+            StockRefType.TRANSFER_RECEIVE,
+            StockRefType.BRANCH_OUTWARD,
+            StockRefType.OPENING_STOCK,
+        }
 
     opening = opening_balance(branch_id, product_id, from_date)
     rows = [

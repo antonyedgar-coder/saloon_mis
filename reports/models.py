@@ -80,6 +80,13 @@ class DsrStaffLine(models.Model):
     )
     staff = models.ForeignKey(Staff, on_delete=models.PROTECT, related_name="dsr_lines")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    mem_card = models.PositiveIntegerField(default=0)
+    makeup = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    google_review_with_photo = models.PositiveIntegerField(default=0)
+    google_review_without_photo = models.PositiveIntegerField(default=0)
+    ear_piercing = models.PositiveIntegerField(default=0)
+    watts = models.PositiveIntegerField(default=0)
+    ot = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         ordering = ["id"]

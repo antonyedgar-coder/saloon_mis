@@ -3,7 +3,7 @@
 {% block title %}Incentive Report{% endblock %}
 {% block content %}
 <h1>Incentive Report</h1>
-<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a> · Salary from Staff Master. Target = salary × salary-times (daily ÷30, weekly ÷4, monthly full). Incentive = Incentive % × Target achieved only when target is met; otherwise 0. Historical salary and incentive rules apply before any change date.</p>
+<p class="muted"><a href="{% url 'reports:index' %}">← Reports</a> · Uses Daily, Weekly, or Monthly settings from <a href="{% url 'masters:incentive' %}">Incentive Master</a>. Service, retail, and staff performance incentives are calculated separately and totaled. If nothing is enabled for the selected period type, the report stays blank.</p>
 
 <div class="card">
   <form method="get" id="incentive-filters" class="incentive-filters">
@@ -85,7 +85,7 @@
           {% endfor %}
         </tr>
         {% empty %}
-        <tr><td colspan="{{ headers|length }}">No incentive data for the selected filters.</td></tr>
+        <tr><td colspan="{{ headers|length }}">No incentive configured for this period type, or no staff activity in the selected range.</td></tr>
         {% endfor %}
       </tbody>
     </table>

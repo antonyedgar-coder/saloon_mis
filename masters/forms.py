@@ -56,10 +56,27 @@ class IncentiveSettingsForm(forms.ModelForm):
 
     class Meta:
         model = IncentiveSettings
-        fields = ["incentive_percent", "salary_times"]
+        fields = [
+            "incentive_percent",
+            "salary_times",
+            "makeup_percent",
+            "google_review_with_photo_incentive",
+            "google_review_without_photo_incentive",
+            "ear_piercing_incentive",
+            "watts_incentive",
+            "membership_card_incentive",
+            "ot_incentive",
+        ]
         labels = {
             "incentive_percent": "Incentive %",
             "salary_times": "No. of times of salary as target",
+            "makeup_percent": "Make-up incentive (%)",
+            "google_review_with_photo_incentive": "Google review with photo (₹ per review)",
+            "google_review_without_photo_incentive": "Google review without photo (₹ per review)",
+            "ear_piercing_incentive": "Ear piercing (₹ per unit)",
+            "watts_incentive": "Watts (₹ per unit)",
+            "membership_card_incentive": "Membership card (₹ per unit)",
+            "ot_incentive": "OT (₹ per unit)",
         }
 
 

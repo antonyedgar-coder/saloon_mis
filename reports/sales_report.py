@@ -220,7 +220,17 @@ def report_to_display_values(report):
         "google_reviews_request": report.google_reviews_request,
         "new_clients": report.new_clients,
         "staff_lines": [
-            {"staff_name": line.staff.name, "amount": line.amount}
+            {
+                "staff_name": line.staff.name,
+                "amount": line.amount,
+                "mem_card": line.mem_card,
+                "makeup": line.makeup,
+                "google_review_with_photo": line.google_review_with_photo,
+                "google_review_without_photo": line.google_review_without_photo,
+                "ear_piercing": line.ear_piercing,
+                "watts": line.watts,
+                "ot": line.ot,
+            }
             for line in report.staff_lines.select_related("staff")
         ],
     }

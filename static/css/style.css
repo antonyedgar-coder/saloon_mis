@@ -159,7 +159,7 @@ body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; color
 .grid .combobox.is-open { position: relative; z-index: 50; }
 .logout { padding: 0.75rem; border-top: 1px solid #e2e8f0; }
 .logout button { width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 0.5rem; cursor: pointer; }
-.content { flex: 1; padding: 1.5rem; }
+.content { flex: 1; min-width: 0; width: 100%; padding: 1.5rem; }
 .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; }
 h1 { margin-top: 0; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -223,6 +223,43 @@ input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e
 .dsr-recent-card { margin-top: 1.5rem; max-width: 920px; }
 .dsr-recent-card h2 { margin-top: 0; font-size: 1.05rem; }
 .master-form-body { min-width: 0; max-width: 920px; }
+
+/* DSR page — full width within main content (beside sidebar) */
+.dsr-page {
+  width: 100%;
+  max-width: none;
+}
+.dsr-page .master-form-body,
+.dsr-page .dsr-recent-card {
+  max-width: none;
+  width: 100%;
+}
+.dsr-page .master-section {
+  width: 100%;
+}
+.dsr-page .master-form-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: rgba(248, 250, 252, 0.98);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(8px);
+}
+.dsr-page .master-form-top .master-form-meta {
+  max-width: none;
+}
+.dsr-page-intro {
+  margin-bottom: 1rem;
+}
 .master-section {
   margin-bottom: 0.75rem;
   scroll-margin-top: 1rem;
@@ -349,8 +386,77 @@ input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e
 .master-footer-stat { display: flex; flex-direction: column; gap: 0.1rem; min-width: 5.5rem; }
 .master-footer-stat span { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #94a3b8; }
 .master-footer-stat strong { font-size: 0.95rem; color: #0f172a; }
-.line-row-header-staff { grid-template-columns: 2fr 1fr auto; }
-.line-row-staff { grid-template-columns: 2fr 1fr auto; }
+.line-row-header-staff,
+.line-row-staff {
+  grid-template-columns: minmax(140px, 1.6fr) repeat(8, minmax(72px, 1fr)) auto;
+  width: 100%;
+}
+.dsr-page .line-row-header-staff,
+.dsr-page .line-row-staff {
+  min-width: 0;
+}
+.dsr-staff-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 100%;
+}
+.dsr-page .dsr-staff-table-wrap {
+  overflow-x: visible;
+}
+.dsr-page .dsr-staff-table-wrap .line-row-header,
+.dsr-page .dsr-staff-table-wrap .line-row {
+  min-width: 0;
+}
+.dsr-staff-table-wrap .line-row-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.dsr-staff-extra { font-size: 0.85rem; }
+.incentive-section-title { margin: 1.5rem 0 0.75rem; font-size: 1.05rem; }
+.incentive-subsection-title {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #475569;
+}
+.incentive-slab-table-wrap { overflow-x: auto; margin: 0.75rem 0; }
+.incentive-slab-table { width: 100%; min-width: 520px; }
+.incentive-slab-table th,
+.incentive-slab-table td { padding: 0.35rem; vertical-align: middle; }
+.incentive-slab-table .input { margin-bottom: 0; }
+.incentive-period-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.25rem 0 1rem;
+}
+.incentive-period-tab {
+  padding: 0.45rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font: inherit;
+}
+.incentive-period-tab.is-active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #fff;
+  font-weight: 600;
+}
+.incentive-period-panel.is-hidden { display: none; }
+.incentive-enable-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 1rem;
+  font-weight: 600;
+}
+.incentive-enable-row input { width: auto; margin: 0; }
 .line-row-staff .combobox,
 .line-row-staff input { margin-bottom: 0; }
 .dsr-staff-lines { margin-bottom: 0.75rem; }
@@ -361,6 +467,11 @@ input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e
   .master-fields-3 { grid-template-columns: 1fr; }
   .master-field { grid-template-columns: 1fr; gap: 0.3rem; }
   .master-form-footer { left: 0; }
+  .dsr-page .dsr-staff-table-wrap { overflow-x: auto; }
+  .dsr-page .dsr-staff-table-wrap .line-row-header,
+  .dsr-page .dsr-staff-table-wrap .line-row {
+    min-width: 980px;
+  }
 }
 
 /* Daily Sales Report — readonly / export sheet */

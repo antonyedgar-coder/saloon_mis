@@ -80,6 +80,13 @@ def _post_int(request, key, default="0"):
 def _parse_dsr_staff_lines(request):
     staff_ids = request.POST.getlist("staff_id")
     amounts = request.POST.getlist("staff_amount")
+    mem_cards = request.POST.getlist("staff_mem_card")
+    makeups = request.POST.getlist("staff_makeup")
+    gr_photos = request.POST.getlist("staff_google_review_with_photo")
+    gr_no_photos = request.POST.getlist("staff_google_review_without_photo")
+    ear_piercings = request.POST.getlist("staff_ear_piercing")
+    watts_list = request.POST.getlist("staff_watts")
+    ots = request.POST.getlist("staff_ot")
     lines = []
     for index, staff_id in enumerate(staff_ids):
         staff_id = (staff_id or "").strip()
@@ -92,8 +99,38 @@ def _parse_dsr_staff_lines(request):
             continue
         if amount <= 0:
             continue
-        lines.append({"staff_id": int(staff_id), "amount": amount})
+        lines.append({
+            "staff_id": int(staff_id),
+            "amount": amount,
+            "mem_card": _post_int_value(mem_cards, index),
+            "makeup": _post_decimal_value(makeups, index),
+            "google_review_with_photo": _post_int_value(gr_photos, index),
+            "google_review_without_photo": _post_int_value(gr_no_photos, index),
+            "ear_piercing": _post_int_value(ear_piercings, index),
+            "watts": _post_int_value(watts_list, index),
+            "ot": _post_decimal_value(ots, index),
+        })
     return lines
+
+
+def _post_int_value(values, index, default=0):
+    text = (values[index] if index < len(values) else str(default)).strip()
+    if not text:
+        return default
+    try:
+        return max(0, int(text))
+    except ValueError:
+        return default
+
+
+def _post_decimal_value(values, index, default="0"):
+    text = (values[index] if index < len(values) else default).strip()
+    if not text:
+        return Decimal(default)
+    try:
+        return max(Decimal("0"), Decimal(text))
+    except InvalidOperation:
+        return Decimal(default)
 
 
 def _dsr_data_from_post(request):
@@ -132,6 +169,13 @@ def _staff_lines_for_json(staff_line_dicts):
             "staff_id": line["staff_id"],
             "staff_name": staff_map.get(line["staff_id"], ""),
             "amount": str(line["amount"]),
+            "mem_card": str(line.get("mem_card", 0)),
+            "makeup": str(line.get("makeup", 0)),
+            "google_review_with_photo": str(line.get("google_review_with_photo", 0)),
+            "google_review_without_photo": str(line.get("google_review_without_photo", 0)),
+            "ear_piercing": str(line.get("ear_piercing", 0)),
+            "watts": str(line.get("watts", 0)),
+            "ot": str(line.get("ot", 0)),
         }
         for line in staff_line_dicts
     ]
@@ -248,6 +292,13 @@ class DsrView(ModulePermissionMixin, View):
                     "staff_id": line.staff_id,
                     "staff_name": line.staff.name,
                     "amount": str(line.amount),
+                    "mem_card": str(line.mem_card),
+                    "makeup": str(line.makeup),
+                    "google_review_with_photo": str(line.google_review_with_photo),
+                    "google_review_without_photo": str(line.google_review_without_photo),
+                    "ear_piercing": str(line.ear_piercing),
+                    "watts": str(line.watts),
+                    "ot": str(line.ot),
                 }
                 for line in edit_report.staff_lines.all()
             ]
@@ -342,6 +393,13 @@ class DsrView(ModulePermissionMixin, View):
                     report=report,
                     staff_id=line["staff_id"],
                     amount=line["amount"],
+                    mem_card=line.get("mem_card", 0),
+                    makeup=line.get("makeup", 0),
+                    google_review_with_photo=line.get("google_review_with_photo", 0),
+                    google_review_without_photo=line.get("google_review_without_photo", 0),
+                    ear_piercing=line.get("ear_piercing", 0),
+                    watts=line.get("watts", 0),
+                    ot=line.get("ot", 0),
                 )
 
         if created:
@@ -382,6 +440,13 @@ class DsrLoadView(ModulePermissionMixin, View):
                 "staff_id": line.staff_id,
                 "staff_name": line.staff.name,
                 "amount": str(line.amount),
+                "mem_card": str(line.mem_card),
+                "makeup": str(line.makeup),
+                "google_review_with_photo": str(line.google_review_with_photo),
+                "google_review_without_photo": str(line.google_review_without_photo),
+                "ear_piercing": str(line.ear_piercing),
+                "watts": str(line.watts),
+                "ot": str(line.ot),
             }
             for line in report.staff_lines.all()
         ]

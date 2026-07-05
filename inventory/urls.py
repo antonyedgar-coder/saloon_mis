@@ -11,4 +11,5 @@ urlpatterns = [
     path("receive/", views.ReceiveStockView.as_view(), name="receive"),
     path("branch-outward/", views.BranchOutwardView.as_view(), name="branch_outward"),
     path("stock/", views.StockBalanceView.as_view(), name="stock"),
+    path("opening-stock/", views.OpeningStockBulkUploadView.as_view(), name="opening_stock_upload"),
 ]

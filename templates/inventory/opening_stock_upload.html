@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Opening Stock Upload</h1>
+<p class="muted"><a href="{% url 'inventory:hub' %}">← Inventory</a> · Initial go-live opening stock for Central (HO) and all branches in one file.</p>
+
+<div class="card">
+  <h2>File format</h2>
+  <p class="muted">CSV or Excel (.xlsx) with these columns:</p>
+  <table>
+    <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Branch</td><td>Yes</td><td>Use <strong>Central (HO)</strong> for head office, or an exact branch name from Branch master.</td></tr>
+      <tr><td>Inventory Name</td><td>Yes</td><td>Must match Inventory Name master exactly (name only).</td></tr>
+      <tr><td>Quantity</td><td>Yes</td><td>Opening quantity.</td></tr>
+      <tr><td>Expiry Date</td><td>Yes</td><td>YYYY-MM-DD or DD-MM-YYYY.</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Re-uploading replaces opening stock for each branch included in the file. Normal GRN / receive flows apply after go-live.</p>
+  {% if is_central %}
+  <p><strong>Active branches:</strong> Central (HO){% for b in branches %}, {{ b.name }}{% endfor %}</p>
+  {% else %}
+  <p><strong>Your branch(es):</strong>{% for b in branches %} {{ b.name }}{% if not forloop.last %},{% endif %}{% endfor %}</p>
+  {% endif %}
+  <p><a class="btn btn-secondary" href="?template=1">Download template CSV</a></p>
+</div>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="grid">
+      <div>
+        <label>Opening stock date</label>
+        <input type="date" name="stock_date" value="{{ default_stock_date }}" required>
+        <p class="muted">Date recorded on the opening stock batch.</p>
+      </div>
+      <div>
+        <label>Upload file</label>
+        <input type="file" name="upload_file" accept=".csv,.xlsx,.xlsm" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" type="submit">Upload opening stock</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

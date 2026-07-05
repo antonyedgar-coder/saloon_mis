@@ -2,8 +2,9 @@
 {% load static %}
 {% block title %}Daily Sales Report{% endblock %}
 {% block content %}
+<div class="dsr-page">
 <h1>Daily Sales Report</h1>
-<p class="muted">Enter a new report, or choose a branch and date and click <strong>Load report</strong> to edit a saved one.</p>
+<p class="muted dsr-page-intro">Enter a new report, or choose a branch and date and click <strong>Load report</strong> to edit a saved one.</p>
 
 {% if validation_errors %}
 <div class="alert alert-error">
@@ -155,10 +156,21 @@
         <span class="master-section-total">Total <output id="staff-total">0.00</output></span>
       </button>
       <div class="master-section-body">
-        <div class="line-row-header line-row-header-staff">
-          <span>Staff</span><span>Amount (₹)</span><span></span>
+        <div class="dsr-staff-table-wrap">
+          <div class="line-row-header line-row-header-staff">
+            <span>Staff</span>
+            <span>Amount (₹)</span>
+            <span>Mem Card</span>
+            <span>Make-Up (₹)</span>
+            <span>GR w/ Photo</span>
+            <span>GR w/o Photo</span>
+            <span>Ear Piercing</span>
+            <span>Watts</span>
+            <span>OT</span>
+            <span></span>
+          </div>
+          <div id="dsr-staff-tbody" class="line-rows dsr-staff-lines"></div>
         </div>
-        <div id="dsr-staff-tbody" class="line-rows dsr-staff-lines"></div>
         <button type="button" class="btn btn-secondary" id="dsr-add-staff">+ Add staff</button>
       </div>
     </section>
@@ -202,7 +214,7 @@
 {{ staff_list|json_script:"staff-data" }}
 {{ staff_lines_json|json_script:"dsr-staff-lines-data" }}
 <script src="{% static 'js/inventory-forms.js' %}?v=7"></script>
-<script src="{% static 'js/dsr-form.js' %}?v=12"></script>
+<script src="{% static 'js/dsr-form.js' %}?v=13"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   initDsrForm({
@@ -214,4 +226,5 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
+</div>
 {% endblock %}

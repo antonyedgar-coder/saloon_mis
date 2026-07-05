@@ -95,6 +95,13 @@ function createDsrStaffRow(staffItems, preset) {
     '<input type="hidden" class="combobox-id" name="staff_id">' +
     '<ul class="combobox-list" hidden></ul></div>' +
     '<input name="staff_amount" type="number" step="0.01" min="0.01" class="dsr-staff-amount" placeholder="Amount">' +
+    '<input name="staff_mem_card" type="number" step="1" min="0" class="dsr-staff-extra" placeholder="0" title="Mem Card">' +
+    '<input name="staff_makeup" type="number" step="0.01" min="0" class="dsr-staff-extra" placeholder="0" title="Make-Up">' +
+    '<input name="staff_google_review_with_photo" type="number" step="1" min="0" class="dsr-staff-extra" placeholder="0" title="GR with Photo">' +
+    '<input name="staff_google_review_without_photo" type="number" step="1" min="0" class="dsr-staff-extra" placeholder="0" title="GR without Photo">' +
+    '<input name="staff_ear_piercing" type="number" step="1" min="0" class="dsr-staff-extra" placeholder="0" title="Ear Piercing">' +
+    '<input name="staff_watts" type="number" step="1" min="0" class="dsr-staff-extra" placeholder="0" title="Watts">' +
+    '<input name="staff_ot" type="number" step="0.01" min="0" class="dsr-staff-extra" placeholder="0" title="OT">' +
     '<button type="button" class="btn btn-secondary btn-sm line-remove" title="Remove">×</button>';
 
   const combobox = row.querySelector(".combobox");
@@ -107,6 +114,22 @@ function createDsrStaffRow(staffItems, preset) {
     if (input && preset.staff_name) input.value = preset.staff_name;
     if (hidden && preset.staff_id) hidden.value = preset.staff_id;
     if (amount && preset.amount) amount.value = preset.amount;
+    const fieldMap = [
+      ["staff_mem_card", "mem_card"],
+      ["staff_makeup", "makeup"],
+      ["staff_google_review_with_photo", "google_review_with_photo"],
+      ["staff_google_review_without_photo", "google_review_without_photo"],
+      ["staff_ear_piercing", "ear_piercing"],
+      ["staff_watts", "watts"],
+      ["staff_ot", "ot"],
+    ];
+    fieldMap.forEach(function (pair) {
+      const el = row.querySelector('input[name="' + pair[0] + '"]');
+      const value = preset[pair[1]];
+      if (el && value !== undefined && value !== null && value !== "") {
+        el.value = value;
+      }
+    });
   }
 
   return row;
